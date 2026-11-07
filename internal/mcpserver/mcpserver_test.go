@@ -283,12 +283,12 @@ func TestToolsAndAnnotations(t *testing.T) {
 		}
 	}
 	for _, name := range []string{"service", "install_version", "link_site", "proxy_site", "update_site", "set_debugging", "create_database", "postgres_extension",
-		"create_worktree", "setup_worktree"} {
+		"create_worktree", "setup_worktree", "run_artisan"} {
 		if ro, ok := readOnly[name]; !ok || ro {
 			t.Errorf("%s should be a tool that changes things (listed: %v)", name, ok)
 		}
 	}
-	if len(res.Tools) != 24 {
+	if len(res.Tools) != 26 {
 		t.Errorf("got %d tools", len(res.Tools))
 	}
 }

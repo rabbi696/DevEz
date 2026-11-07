@@ -36,7 +36,7 @@ fi
 ARCHS=(--arch arm64)
 swift build -c release --product FlockBar "${ARCHS[@]}"
 
-APP="$OUT/Flock.app"
+APP="$OUT/DevEz.app"
 BIN="$(swift build -c release "${ARCHS[@]}" --show-bin-path)"
 
 # FlockScreenshots (demo data, a fake daemon) uses the app's views for the docs' screenshots; none
@@ -45,7 +45,7 @@ if grep -qaE 'FlockScreenshots|FakeDaemon' "$BIN/FlockBar"; then
 	echo "FlockBar contains screenshot code: does it depend on FlockScreenshots?" >&2
 	exit 1
 fi
-rm -rf "$APP"
+rm -rf "$APP" "$OUT/Flock.app"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources" "$APP/Contents/Frameworks"
 cp "$BIN/FlockBar" "$APP/Contents/MacOS/FlockBar"
 # Sparkle, where the executable looks for it in an app bundle.
@@ -57,35 +57,36 @@ cp ../LICENSE ../NOTICE ../THIRD_PARTY_NOTICES "$APP/Contents/Resources/"
 
 # The CLI, built like `make build`; `devez install` copies it to the data dir.
 (cd .. && CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w -X flock/internal/cli.Version=$VERSION" \
-	-o "build/macos/Flock.app/Contents/MacOS/devez" ./cmd/devez)
+	-o "build/macos/DevEz.app/Contents/MacOS/devez" ./cmd/devez)
 ln -sf devez "$APP/Contents/MacOS/flock"
+(cd "$OUT" && ln -sf DevEz.app Flock.app)
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleIdentifier</key><string>dev.flock.bar</string>
-	<key>CFBundleName</key><string>Flock</string>
-	<key>CFBundleDisplayName</key><string>Flock</string>
+	<key>CFBundleIdentifier</key><string>com.devez.app</string>
+	<key>CFBundleName</key><string>DevEz</string>
+	<key>CFBundleDisplayName</key><string>DevEz</string>
 	<key>CFBundleExecutable</key><string>FlockBar</string>
 	<key>CFBundleIconFile</key><string>AppIcon</string>
 	<key>CFBundlePackageType</key><string>APPL</string>
 	<key>CFBundleShortVersionString</key><string>${VERSION}</string>
 	<key>CFBundleVersion</key><string>${BUILD}</string>
 	${UPDATES}
-	<key>NSHumanReadableCopyright</key><string>Copyright © Guava s.r.o.</string>
+	<key>NSHumanReadableCopyright</key><string>Copyright © DevEz Contributors</string>
 	<key>LSMinimumSystemVersion</key><string>15.0</string>
 	<key>LSUIElement</key><true/>
 	<key>NSHighResolutionCapable</key><true/>
 	<key>NSAppTransportSecurity</key>
 	<dict><key>NSAllowsLocalNetworking</key><true/></dict>
-	<!-- flock://install/<service>/<version> links from the website; the app asks before installing. -->
+	<!-- URLs; supports both devez:// and flock:// -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
-			<key>CFBundleURLName</key><string>dev.flock.bar</string>
-			<key>CFBundleURLSchemes</key><array><string>flock</string></array>
+			<key>CFBundleURLName</key><string>com.devez.app</string>
+			<key>CFBundleURLSchemes</key><array><string>devez</string><string>flock</string></array>
 		</dict>
 	</array>
 </dict>
@@ -109,7 +110,7 @@ SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
 "${SIGN[@]}" "$APP/Contents/MacOS/devez"
 "${SIGN[@]}" "$APP"
 codesign --verify --strict --deep "$APP"
-echo "built $(cd "$OUT" && pwd)/Flock.app"
+echo "built $(cd "$OUT" && pwd)/DevEz.app"
 
 if [[ "${SKIP_DMG:-}" == 1 ]]; then
 	exit 0
@@ -117,12 +118,13 @@ fi
 
 # The disk image: the app next to a link to /Applications, to drag it there.
 STAGE="$OUT/dmg"
-DMG="$OUT/Flock.dmg"
-rm -rf "$STAGE" "$DMG"
+DMG="$OUT/DevEz.dmg"
+rm -rf "$STAGE" "$DMG" "$OUT/Flock.dmg"
 mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"
 ln -s /Applications "$STAGE/Applications"
-hdiutil create -quiet -volname "Flock" -srcfolder "$STAGE" -fs HFS+ -format UDZO -ov "$DMG"
+hdiutil create -quiet -volname "DevEz" -srcfolder "$STAGE" -fs HFS+ -format UDZO -ov "$DMG"
+(cd "$OUT" && ln -sf DevEz.dmg Flock.dmg)
 rm -rf "$STAGE"
 
 if [[ "$SIGN_IDENTITY" != - ]]; then

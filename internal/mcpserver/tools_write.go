@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -121,6 +123,138 @@ func (s *server) addWriteTools(srv *mcp.Server) {
 		Annotations: additive(true),
 		InputSchema: schema[createDatabaseIn](map[string][]any{"service": {"postgres", "mysql", "mariadb"}}),
 	}, s.createDatabase)
+
+	mcp.AddTool(srv, &mcp.Tool{
+		Name:        "run_artisan",
+		Description: "Run a Laravel artisan command in the project context using its configured PHP version (e.g. \"route:list\", \"migrate:status\", \"about\", \"config:clear\").",
+		Annotations: additive(true),
+		InputSchema: schema[runArtisanIn](nil),
+	}, s.runArtisan)
+
+	mcp.AddTool(srv, &mcp.Tool{
+		Name:        "get_database_info",
+		Description: "Get database connection parameters and URLs from the site's .env configuration.",
+		Annotations: additive(false),
+		InputSchema: schema[getDatabaseInfoIn](nil),
+	}, s.getDatabaseInfo)
+}
+
+type runArtisanIn struct {
+	Site    string `json:"site,omitempty" jsonschema:"the site's name or project folder (default: this project)"`
+	Command string `json:"command" jsonschema:"the artisan command with arguments to run (e.g. \"route:list\", \"migrate:status\")"`
+}
+
+type runArtisanOut struct {
+	ExitCode int    `json:"exit_code"`
+	Output   string `json:"output"`
+}
+
+type getDatabaseInfoIn struct {
+	Site string `json:"site,omitempty" jsonschema:"the site's name or project folder (default: this project)"`
+}
+
+type getDatabaseInfoOut struct {
+	Driver   string `json:"driver"`
+	Host     string `json:"host"`
+	Port     string `json:"port"`
+	Database string `json:"database"`
+	Username string `json:"username"`
+	URI      string `json:"uri"`
+}
+
+func (s *server) runArtisan(ctx context.Context, _ *mcp.CallToolRequest, in runArtisanIn) (*mcp.CallToolResult, runArtisanOut, error) {
+	st, err := s.site(ctx, in.Site)
+	if err != nil {
+		return nil, runArtisanOut{}, err
+	}
+	artisan := filepath.Join(st.Path, "artisan")
+	if _, err := os.Stat(artisan); err != nil {
+		return nil, runArtisanOut{}, fmt.Errorf("no artisan file found in site path %s", st.Path)
+	}
+
+	phpBin := "php"
+	if st.PHP != "" {
+		candidate := filepath.Join(s.Root, "bin", "php"+st.PHP)
+		if _, err := os.Stat(candidate); err == nil {
+			phpBin = candidate
+		}
+	}
+
+	args := append([]string{artisan}, strings.Fields(in.Command)...)
+	cmd := exec.CommandContext(ctx, phpBin, args...)
+	cmd.Dir = st.Path
+	out, runErr := cmd.CombinedOutput()
+	exitCode := 0
+	if runErr != nil {
+		if exitErr, ok := runErr.(*exec.ExitError); ok {
+			exitCode = exitErr.ExitCode()
+		} else {
+			return nil, runArtisanOut{}, runErr
+		}
+	}
+	return nil, runArtisanOut{ExitCode: exitCode, Output: string(out)}, nil
+}
+
+func (s *server) getDatabaseInfo(ctx context.Context, _ *mcp.CallToolRequest, in getDatabaseInfoIn) (*mcp.CallToolResult, getDatabaseInfoOut, error) {
+	st, err := s.site(ctx, in.Site)
+	if err != nil {
+		return nil, getDatabaseInfoOut{}, err
+	}
+	envPath := filepath.Join(st.Path, ".env")
+	data, err := os.ReadFile(envPath)
+	if err != nil {
+		return nil, getDatabaseInfoOut{}, fmt.Errorf("read .env in %s: %w", st.Path, err)
+	}
+
+	info := getDatabaseInfoOut{
+		Driver:   "pgsql",
+		Host:     "127.0.0.1",
+		Port:     "5432",
+		Database: "postgres",
+		Username: "postgres",
+	}
+
+	lines := strings.Split(string(data), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "#") || !strings.Contains(line, "=") {
+			continue
+		}
+		k, v, _ := strings.Cut(line, "=")
+		k = strings.TrimSpace(k)
+		v = strings.Trim(strings.TrimSpace(v), `"'`)
+		switch k {
+		case "DB_CONNECTION":
+			info.Driver = v
+		case "DB_HOST":
+			if v != "" {
+				info.Host = v
+			}
+		case "DB_PORT":
+			if v != "" {
+				info.Port = v
+			}
+		case "DB_DATABASE":
+			if v != "" {
+				info.Database = v
+			}
+		case "DB_USERNAME":
+			if v != "" {
+				info.Username = v
+			}
+		}
+	}
+
+	if info.Driver == "mysql" || info.Driver == "mariadb" {
+		if info.Port == "5432" || info.Port == "" {
+			info.Port = "3306"
+		}
+		if info.Username == "postgres" || info.Username == "" {
+			info.Username = "root"
+		}
+	}
+	info.URI = fmt.Sprintf("%s://%s@%s:%s/%s", info.Driver, info.Username, info.Host, info.Port, info.Database)
+	return nil, info, nil
 }
 
 // actionOut is what a tool that changes something answers.

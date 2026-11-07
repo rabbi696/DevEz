@@ -145,6 +145,10 @@ type Site struct {
 	// It is kept while the site runs on FastCGI, for switching back.
 	Worker string `json:"worker,omitempty"`
 	Port   int    `json:"port,omitempty"` // FrankenPHP's loopback port, assigned by SetServer
+
+	// Background worker & scheduler flags (Herd Pro equivalent)
+	Queue    bool `json:"queue,omitempty"`
+	Schedule bool `json:"schedule,omitempty"`
 }
 
 // Servers and worker modes of a site (see Site.Server and Site.Worker).

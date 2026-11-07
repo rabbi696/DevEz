@@ -79,12 +79,14 @@ func DefaultEnv(root string) (Env, error) {
 // Executable is the flock binary clients should start: the one `flock install` copied into
 // <root>/bin, which stays put across updates, or else the running one.
 func Executable(root string) string {
-	exe := "flock"
+	ext := ""
 	if runtime.GOOS == "windows" {
-		exe += ".exe"
+		ext = ".exe"
 	}
-	if installed := filepath.Join(root, "bin", exe); fileExists(installed) {
-		return installed
+	for _, name := range []string{"devez", "flock"} {
+		if installed := filepath.Join(root, "bin", name+ext); fileExists(installed) {
+			return installed
+		}
 	}
 	if self, err := os.Executable(); err == nil {
 		if resolved, err := filepath.EvalSymlinks(self); err == nil {
@@ -92,7 +94,7 @@ func Executable(root string) string {
 		}
 		return self
 	}
-	return exe
+	return "devez" + ext
 }
 
 // lookPath finds a command on PATH, or where its installers usually put it: apps started from the
@@ -136,9 +138,14 @@ type client struct {
 }
 
 func clients() []client {
-	return []client{claudeCode(), jsonClient("cursor", "Cursor", "mcpServers", false,
-		func(e Env) string { return filepath.Join(e.Home, ".cursor", "mcp.json") },
-		func(e Env) bool { return dirExists(filepath.Join(e.Home, ".cursor")) }),
+	return []client{
+		jsonClient("antigravity", "Antigravity", "mcpServers", false,
+			func(e Env) string { return filepath.Join(e.Home, ".gemini", "settings.json") },
+			func(e Env) bool { return dirExists(filepath.Join(e.Home, ".gemini")) }),
+		claudeCode(),
+		jsonClient("cursor", "Cursor", "mcpServers", false,
+			func(e Env) string { return filepath.Join(e.Home, ".cursor", "mcp.json") },
+			func(e Env) bool { return dirExists(filepath.Join(e.Home, ".cursor")) }),
 		jsonClient("vscode", "VS Code", "servers", true,
 			func(e Env) string { return filepath.Join(vscodeUserDir(e), "mcp.json") },
 			func(e Env) bool { return dirExists(vscodeUserDir(e)) }),
@@ -162,7 +169,7 @@ func find(id string) (client, error) {
 			return c, nil
 		}
 	}
-	return client{}, fmt.Errorf("%w %q (use claude-code, cursor, vscode, windsurf or codex)", ErrUnknown, id)
+	return client{}, fmt.Errorf("%w %q (use antigravity, claude-code, cursor, vscode, windsurf or codex)", ErrUnknown, id)
 }
 
 // IDs are the supported clients.

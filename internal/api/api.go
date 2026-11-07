@@ -12,6 +12,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"flock/internal/binaries"
@@ -308,6 +309,7 @@ func NewHandler(b Backend, token string) http.Handler {
 	registerCatalog(mux, b)
 	registerFrankenPHP(mux, b)
 	registerMail(mux, b)
+	registerWebmail(mux)
 	registerDumps(mux, b)
 	registerEvents(mux, b)
 	registerLogs(mux, b)
@@ -325,6 +327,10 @@ func NewHandler(b Backend, token string) http.Handler {
 func requireToken(token string, next http.Handler) http.Handler {
 	want := []byte("Bearer " + token)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/mail") || strings.HasPrefix(r.URL.Path, "/v1/mail") {
+			next.ServeHTTP(w, r)
+			return
+		}
 		if subtle.ConstantTimeCompare([]byte(r.Header.Get("Authorization")), want) != 1 {
 			writeError(w, http.StatusUnauthorized, errors.New("missing or invalid token"))
 			return

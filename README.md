@@ -28,12 +28,15 @@
 - **Multiple PHP versions side by side:** Run PHP 8.1 through 8.5 concurrently. Each project can pin its preferred version via `.devezrc` (or `.flockrc`).
 - **Node.js version management:** Automatically respects `.nvmrc` or project configurations.
 - **One-click background services:** Native databases and cache services including PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Valkey, Meilisearch, and Typesense.
-- **Local mail inbox:** Catches all outgoing emails locally on port 2525 so test emails never reach real recipients.
+- **Background Queue Workers & Schedulers:** Supervised background `php artisan queue:work` and `php artisan schedule:work` runners per site (Laravel Herd Pro equivalent), with auto-restart, logging, and status tracking.
+- **Database Tools & TablePlus/TablePro Integration:** One-click launch in TablePlus, TablePro, or DBeaver (`devez db`), plus one-command SQL dump and import (`devez db dump`, `devez db import`).
+- **Local mail inbox & Web UI:** Catches all outgoing emails locally on port 2525. Inspect caught messages in the native macOS app or via the browser-based Webmail client (`devez open --mail`).
+- **Environment Diagnostics:** Built-in `devez doctor` command to verify DNS, SSL certificates, ports, runtimes, and auto-repair common issues.
 - **`dump()` & debug timeline:** Captures `dump()` and `dd()` calls, database queries, logs, and rendered views without polluting HTML responses.
 - **On-demand Xdebug:** Keep Xdebug available when debugging without slowing down regular development requests.
 - **Git worktree support:** Each worktree automatically gets its own isolated domain and database.
 - **Public URL sharing:** Instantly share a local site over a temporary public URL via Cloudflare Tunnels (`devez share`).
-- **AI Agent integration:** Built-in Model Context Protocol (MCP) server so coding agents (Claude Code, Cursor, Windsurf) can interact with your sites and logs directly.
+- **AI Agent & Antigravity MCP integration:** Built-in Model Context Protocol (MCP) server supporting Google Antigravity, Claude Code, Cursor, and Windsurf, with tools to run artisan commands, inspect DB parameters, check site health, and read error logs.
 
 ---
 
@@ -62,6 +65,29 @@ devez pin php 8.4
 # Install and start database services
 devez services install postgres
 devez services install mysql
+
+# Open project database in TablePlus or TablePro
+devez db open
+
+# Manage background queue workers (Herd Pro feature)
+devez queue start
+devez queue status
+devez queue logs
+
+# Manage background task scheduler (Herd Pro feature)
+devez schedule start
+devez schedule status
+
+# Run system health diagnostics
+devez doctor
+
+# View or change listening ports
+devez ports
+devez port set https 8443
+
+# Open site in browser or code editor
+devez open
+devez code
 ```
 
 *(Note: For backward compatibility, the `flock` command alias is also supported alongside `devez`.)*

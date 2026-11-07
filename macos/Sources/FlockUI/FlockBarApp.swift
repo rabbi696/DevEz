@@ -42,7 +42,7 @@ public struct FlockBarApp: App {
         }
         .defaultSize(width: 980, height: 640)
 
-        Window("Flock Settings", id: WindowID.settings) {
+        Window("DevEz Settings", id: WindowID.settings) {
             SettingsWindow()
                 .environment(model)
         }
@@ -50,7 +50,7 @@ public struct FlockBarApp: App {
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentMinSize)
 
-        Window("Set Up Flock", id: WindowID.setup) {
+        Window("Set Up DevEz", id: WindowID.setup) {
             SetupWindow()
                 .environment(model)
         }

@@ -31,6 +31,7 @@ func NewRootCommand() *cobra.Command {
 		newIsolateCommand(), newUnisolateCommand(), newIsolatedCommand(), newPinCommand(), newUnpinCommand(), newRootCommand(),
 		newPHPCommand(), newNodeCommand(), newServicesCommand(), newXdebugCommand(), newDebugCommand(), newFrankenPHPCommand(), newDumpsCommand(), newEventsCommand(), newMailCommand(),
 		newExecCommand(), newMCPCommand(), newBoostCommand(), newChannelCommand(), newExtCommand(),
+		newPortsCommand(), newOpenCommand(), newCodeCommand(), newDoctorCommand(), newDBCommand(), newQueueCommand(), newScheduleCommand(),
 	)
 
 	return root

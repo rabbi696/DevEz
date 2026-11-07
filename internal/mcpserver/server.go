@@ -79,7 +79,7 @@ func New(ctx context.Context, opts Options) *mcp.Server {
 	}
 	s := &server{Options: opts}
 
-	srv := mcp.NewServer(&mcp.Implementation{Name: "flock", Title: "Flock", Version: opts.Version}, &mcp.ServerOptions{
+	srv := mcp.NewServer(&mcp.Implementation{Name: "devez", Title: "DevEz", Version: opts.Version}, &mcp.ServerOptions{
 		Instructions: s.instructions(ctx),
 		Capabilities: &mcp.ServerCapabilities{},
 	})

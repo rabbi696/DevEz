@@ -728,6 +728,35 @@ func (d *daemon) reload() error {
 		status.URL = scheme + "://" + domain + portSuffix(scheme, cfg)
 		shareables[site.Name] = shareable{root: ws.Root, version: version}
 
+		if site.Queue {
+			artisan := filepath.Join(site.Path, "artisan")
+			if _, err := os.Stat(artisan); err == nil {
+				qSpec := supervisor.Spec{
+					Name:    "queue-" + site.Name,
+					Path:    php.Binary(d.root, version),
+					Args:    []string{artisan, "queue:work", "--tries=3"},
+					Dir:     site.Path,
+					LogFile: filepath.Join(d.root, "log", "queue-"+site.Name+".log"),
+				}
+				d.procs.Ensure(qSpec)
+				keep[qSpec.Name] = true
+			}
+		}
+		if site.Schedule {
+			artisan := filepath.Join(site.Path, "artisan")
+			if _, err := os.Stat(artisan); err == nil {
+				sSpec := supervisor.Spec{
+					Name:    "schedule-" + site.Name,
+					Path:    php.Binary(d.root, version),
+					Args:    []string{artisan, "schedule:work"},
+					Dir:     site.Path,
+					LogFile: filepath.Join(d.root, "log", "schedule-"+site.Name+".log"),
+				}
+				d.procs.Ensure(sSpec)
+				keep[sSpec.Name] = true
+			}
+		}
+
 		webSites = append(webSites, ws)
 		domains = append(append(domains, domain), served...)
 		statuses = append(statuses, status)
