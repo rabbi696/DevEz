@@ -219,7 +219,7 @@ private struct PHPReleaseRow: View {
             Label(release.update ? "Withdrawn: \(release.yanked) — update to replace it" : "Withdrawn: \(release.yanked)", systemImage: "exclamationmark.triangle.fill")
                 .font(.caption).foregroundStyle(.orange)
                 .lineLimit(2)
-                .help("This build was withdrawn. Flock replaces it as soon as a fixed build is published.")
+                .help("This build was withdrawn. DevEz replaces it as soon as a fixed build is published.")
         } else {
             Text(statusText).font(.caption).foregroundStyle(release.update ? Color.blue : Color.secondary)
         }
@@ -402,7 +402,7 @@ private struct FrankenPHPBuildRow: View {
             Label(build.update ? "Withdrawn: \(build.yanked) — update to replace it" : "Withdrawn: \(build.yanked)", systemImage: "exclamationmark.triangle.fill")
                 .font(.caption).foregroundStyle(.orange)
                 .lineLimit(2)
-                .help("This build was withdrawn. Flock replaces it as soon as a fixed build is published.")
+                .help("This build was withdrawn. DevEz replaces it as soon as a fixed build is published.")
         } else {
             Text(installedText).font(.caption).foregroundStyle(.secondary)
         }

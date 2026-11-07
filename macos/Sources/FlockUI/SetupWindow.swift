@@ -54,15 +54,15 @@ struct SetupWindow: View {
         VStack(alignment: .leading, spacing: 0) {
             switch stage {
             case .intro:
-                header("Welcome to Flock", "Flock runs your Laravel sites, PHP, mail and databases on this Mac. Setting it up takes a moment:")
+                header("Welcome to DevEz", "DevEz runs your Laravel sites, PHP, mail and databases on this Mac. Setting it up takes a moment:")
                 Form {
                     Section {
-                        item("Runs in the background", "The Flock daemon serves your sites and services, and starts whenever you log in.", symbol: "server.rack")
-                        item("php, composer and node in your terminal", "Flock's versions come first on your PATH. Open a new terminal after setup.", symbol: "terminal")
-                        item("*.test sites with trusted HTTPS", "macOS asks for your password twice: once to resolve *.test through Flock (/etc/resolver), once to trust Flock's certificate.", symbol: "lock.fill")
+                        item("Runs in the background", "The DevEz daemon serves your sites and services, and starts whenever you log in.", symbol: "server.rack")
+                        item("php, composer and node in your terminal", "DevEz's versions come first on your PATH. Open a new terminal after setup.", symbol: "terminal")
+                        item("*.test sites with trusted HTTPS", "macOS asks for your password twice: once to resolve *.test through DevEz (/etc/resolver), once to trust DevEz's certificate.", symbol: "lock.fill")
                     }
                     Section {
-                        Toggle("Open Flock’s menu bar app at login", isOn: Binding(get: { launchAtLogin }, set: { launchAtLogin = $0 }))
+                        Toggle("Open DevEz’s menu bar app at login", isOn: Binding(get: { launchAtLogin }, set: { launchAtLogin = $0 }))
                             .toggleStyle(.checkbox)
                     }
                 }
@@ -72,16 +72,16 @@ struct SetupWindow: View {
                 buttons {
                     Button("Not now") { dismissWindow(id: WindowID.setup) }
                         .keyboardShortcut(.cancelAction)
-                    Button("Set Up Flock") { Task { await run() } }
+                    Button("Set Up DevEz") { Task { await run() } }
                         .keyboardShortcut(.defaultAction)
                 }
 
             case .checking:
-                header("Checking Flock's ports…", nil)
+                header("Checking DevEz's ports…", nil)
                 ProgressView().progressViewStyle(.linear).padding(.horizontal, 32).padding(.bottom, 28)
 
             case .conflicts:
-                header("Quit other local environments first", "Flock needs these ports and *.\(model.status?.dns.tld ?? "test") for itself, but other programs use them. Running both would leave neither working.")
+                header("Quit other local environments first", "DevEz needs these ports and *.\(model.status?.dns.tld ?? "test") for itself, but other programs use them. Running both would leave neither working.")
                 Form {
                     Section {
                         ForEach(conflicts) { app in
@@ -100,21 +100,21 @@ struct SetupWindow: View {
                 }
 
             case .running:
-                header("Setting up Flock…", "macOS asks for your password in a moment, and then once more.")
+                header("Setting up DevEz…", "macOS asks for your password in a moment, and then once more.")
                 ProgressView().progressViewStyle(.linear).padding(.horizontal, 32).padding(.bottom, 12)
                 log
 
             case .done:
-                header("Flock is ready", nil)
+                header("DevEz is ready", nil)
                 Form {
                     Section("Next steps") {
                         if let loginProblem {
-                            item("Open Flock at login", loginProblem, symbol: "exclamationmark.triangle")
+                            item("Open DevEz at login", loginProblem, symbol: "exclamationmark.triangle")
                         }
                         runtimes
                         item("Open a new terminal", "Terminals that were already open still have the old PATH.", symbol: "terminal")
-                        item("Link a project", "In a Laravel project, run `flock link`: the site is then at http://<folder>.test. `flock secure` adds HTTPS.", symbol: "globe")
-                        item("PHP and Node.js","Flock installs the newest PHP and Node.js LTS as the defaults. Settings → PHP and Node install other versions.", symbol: "chevron.left.forwardslash.chevron.right")
+                        item("Link a project", "In a Laravel project, run `devez link`: the site is then at http://<folder>.test. `devez secure` adds HTTPS.", symbol: "globe")
+                        item("PHP and Node.js","DevEz installs the newest PHP and Node.js LTS as the defaults. Settings → PHP and Node install other versions.", symbol: "chevron.left.forwardslash.chevron.right")
                     }
                 }
                 .formStyle(.grouped)
@@ -138,7 +138,7 @@ struct SetupWindow: View {
 
             case .failed:
                 header("Setup didn't finish", declined
-                    ? "The password prompt was cancelled. Flock runs, but *.test sites won't resolve and HTTPS isn't trusted until you allow it."
+                    ? "The password prompt was cancelled. DevEz runs, but *.test sites won't resolve and HTTPS isn't trusted until you allow it."
                     : "Something went wrong. The output below says what; you can try again.")
                 log
                 buttons {
@@ -217,11 +217,11 @@ struct SetupWindow: View {
                      symbol: "exclamationmark.triangle.fill", color: .orange)
             }
             if pending.contains(where: { $0.install.state == .installing }) {
-                row("Installing \(Self.names(pending))…", "Flock makes \(pending.count > 1 ? "them" : "it") the default for your sites and terminal.") {
+                row("Installing \(Self.names(pending))…", "DevEz makes \(pending.count > 1 ? "them" : "it") the default for your sites and terminal.") {
                     ProgressView().controlSize(.small)
                 }
             } else if !pending.isEmpty {
-                row("Waiting to install \(Self.names(pending))", "\(Self.names(pending)) \(pending.count > 1 ? "are" : "is") installed as soon as Flock can download \(pending.count > 1 ? "them" : "it").") {
+                row("Waiting to install \(Self.names(pending))", "\(Self.names(pending)) \(pending.count > 1 ? "are" : "is") installed as soon as DevEz can download \(pending.count > 1 ? "them" : "it").") {
                     ProgressView().controlSize(.small)
                 }
             }

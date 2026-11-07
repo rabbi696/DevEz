@@ -31,7 +31,7 @@ struct UnavailableNotice: View {
         let style = ServiceStyle.of(service.id)
         InstallInvitation(symbol: style.symbol, color: style.color.opacity(0.5),
                           title: "Not available on macOS",
-                          message: service.unavailable.isEmpty ? "Flock can't run \(service.name) on this Mac." : service.unavailable) {} footer: {}
+                          message: service.unavailable.isEmpty ? "DevEz can't run \(service.name) on this Mac." : service.unavailable) {} footer: {}
     }
 }
 
@@ -72,7 +72,7 @@ struct CatalogDetail: View {
                     ProgressView().frame(maxWidth: .infinity).padding(.top, 30)
                 } else {
                     InstallInvitation(symbol: style.symbol, color: style.color, title: "\(service.name) isn't offered",
-                                      message: "This Flock daemon doesn't know \(service.name). Update Flock, then try again.") {} footer: {}
+                                      message: "This DevEz daemon doesn't know \(service.name). Update DevEz, then try again.") {} footer: {}
                 }
             }
             .padding(16)
@@ -273,7 +273,7 @@ private struct CatalogLineRow: View {
                     Label(line.update ? "Withdrawn: \(line.yanked) — update to replace it" : "Withdrawn: \(line.yanked)", systemImage: "exclamationmark.triangle.fill")
                         .font(.caption).foregroundStyle(.orange)
                         .lineLimit(2)
-                        .help("This build was withdrawn. Flock replaces it as soon as a fixed build is published.")
+                        .help("This build was withdrawn. DevEz replaces it as soon as a fixed build is published.")
                 }
             }
             Spacer(minLength: 8)
@@ -400,7 +400,7 @@ private struct CatalogInstallCard: View {
             version: Binding(get: { selectedLine }, set: { lineState.wrappedValue = $0 }),
             portText: Binding(get: { portText }, set: { portState.wrappedValue = $0 }),
             note: entry.port != entry.defaultPort && portState.wrappedValue == nil
-                ? "Port \(String(entry.defaultPort)) is taken, so Flock suggests \(String(entry.port))." : nil,
+                ? "Port \(String(entry.defaultPort)) is taken, so DevEz suggests \(String(entry.port))." : nil,
             busy: busy
         ) {
             let line = selectedLine

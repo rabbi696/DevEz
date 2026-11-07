@@ -217,8 +217,8 @@ final class AppModel {
         let binary = FlockPaths.flockBinary
         guard FileManager.default.fileExists(atPath: binary.path) else {
             actionError = needsSetup
-                ? "Flock is not set up for this user yet — click Set Up Flock… first."
-                : "Flock is not installed for this user (\(binary.path) is missing) — run `flock install` once."
+                ? "DevEz is not set up for this user yet — click Set Up DevEz… first."
+                : "DevEz is not installed for this user (\(binary.path) is missing) — run `devez install` once."
             return
         }
         let result = await Installation.run(binary, ["restart"])
@@ -236,8 +236,8 @@ final class AppModel {
         if !result.ok {
             let alert = NSAlert()
             alert.alertStyle = .warning
-            alert.messageText = "Flock could not update"
-            alert.informativeText = "\(result.output)\n\nYou can run `flock install` in a terminal, or reinstall Flock."
+            alert.messageText = "DevEz could not update"
+            alert.informativeText = "\(result.output)\n\nYou can run `devez install` in a terminal, or reinstall DevEz."
             NSApp.activate()
             alert.runModal()
         }
@@ -289,7 +289,7 @@ final class AppModel {
     /// purge also deletes the user's settings and databases.
     func uninstall(purge: Bool, onLine: @escaping @Sendable (String) -> Void) async -> Installation.Result {
         guard let flock = installation.uninstaller else {
-            return Installation.Result(ok: false, output: "Flock's CLI is not installed — there is nothing to uninstall.")
+            return Installation.Result(ok: false, output: "DevEz's CLI is not installed — there is nothing to uninstall.")
         }
         let result = await Installation.run(flock, ["uninstall", "--keep-app"] + (purge ? ["--purge"] : []), onLine: onLine)
         needsSetup = installation.needsSetup

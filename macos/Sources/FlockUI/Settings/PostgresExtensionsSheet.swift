@@ -93,7 +93,7 @@ struct PostgresExtensionsSheet: View {
                         }
                         if !ext.yanked.isEmpty {
                             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-                                .help("This build was withdrawn: \(ext.yanked). Flock replaces it as soon as a fixed build is published.")
+                                .help("This build was withdrawn: \(ext.yanked). DevEz replaces it as soon as a fixed build is published.")
                         }
                     }
                     if ext.prerelease {
@@ -223,7 +223,7 @@ struct PostgresExtensionsSheet: View {
         HStack(alignment: .top, spacing: 10) {
             Image(systemName: "folder").foregroundStyle(.secondary)
             VStack(alignment: .leading, spacing: 4) {
-                Text("Your own extensions for PostgreSQL \(major). Put their library in lib/ and their .control and .sql files in extension/; Flock keeps them across updates.")
+                Text("Your own extensions for PostgreSQL \(major). Put their library in lib/ and their .control and .sql files in extension/; DevEz keeps them across updates.")
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 Button("Open Extensions Folder") {

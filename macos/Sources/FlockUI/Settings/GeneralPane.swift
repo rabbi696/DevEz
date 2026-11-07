@@ -29,7 +29,7 @@ struct GeneralPane: View {
         let store = model.settings
 
         VStack(spacing: 0) {
-            PaneHeader(title: "General", subtitle: "The Flock daemon runs your sites, PHP and services in the background.")
+            PaneHeader(title: "General", subtitle: "The DevEz daemon runs your sites, PHP and services in the background.")
             Form {
                 Section("Daemon") {
                     if let status = model.status {
@@ -81,7 +81,7 @@ struct GeneralPane: View {
                 }
 
                 Section("Startup") {
-                    Toggle("Open Flock’s menu bar app at login", isOn: Binding(get: { launchAtLogin }, set: { setLaunchAtLogin($0) }))
+                    Toggle("Open DevEz’s menu bar app at login", isOn: Binding(get: { launchAtLogin }, set: { setLaunchAtLogin($0) }))
                     if let loginError {
                         Text(loginError).font(.caption).foregroundStyle(.orange)
                     }
@@ -95,11 +95,11 @@ struct GeneralPane: View {
                             set: { on in Task { await store.perform { _ = try await $0.updateSettings(SettingsChange(channel: on ? "beta" : "stable")) } } }
                         )) {
                             Text("Beta versions")
-                            Text("Get new versions of Flock, PHP and services earlier, including pre-releases. They may not work yet.")
+                            Text("Get new versions of DevEz, PHP and services earlier, including pre-releases. They may not work yet.")
                         }
                         .disabled(config.channel == "experimental")
                         if config.channel == "experimental" {
-                            Label("Experimental channel: packages that aren’t released yet are offered. `flock channel stable` switches back.", systemImage: "flask.fill")
+                            Label("Experimental channel: packages that aren’t released yet are offered. `devez channel stable` switches back.", systemImage: "flask.fill")
                                 .font(.caption).foregroundStyle(.orange)
                         }
                     }
@@ -136,7 +136,7 @@ struct GeneralPane: View {
                     } header: {
                         Text("Project folders")
                     } footer: {
-                        Text("Every folder inside a project folder is served as <folder>.\(config.tld) — the same as `flock park`.")
+                        Text("Every folder inside a project folder is served as <folder>.\(config.tld) — the same as `devez park`.")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                 }
@@ -173,7 +173,7 @@ struct GeneralPane: View {
                 }
             }
         } label: {
-            Text("Flock")
+            Text("DevEz")
             Text("Version \(Updater.appVersion)")
         }
     }
@@ -191,15 +191,15 @@ struct GeneralPane: View {
         return updater.upToDate ? "Up to date" : ""
     }
 
-    /// How names under the TLD resolve: Flock's DNS server through /etc/resolver, which has no
+    /// How names under the TLD resolve: DevEz's DNS server through /etc/resolver, which has no
     /// fallback on macOS (Windows also writes site domains to the hosts file).
     private func domainExplanation(_ tld: String) -> String {
         guard let dns = model.status?.dns else { return "" }
         if dns.wildcard {
-            return "Every name, any subdomain included, is resolved by Flock's DNS server (/etc/resolver/\(tld))."
+            return "Every name, any subdomain included, is resolved by DevEz's DNS server (/etc/resolver/\(tld))."
         }
-        let problem = dns.wildcardProblem.isEmpty ? "Flock's DNS server isn't running" : dns.wildcardProblem
-        return "*.\(tld) doesn't resolve: \(problem). macOS has no hosts-file fallback, so sites don't open until it does; `flock install` sets /etc/resolver/\(tld) up again."
+        let problem = dns.wildcardProblem.isEmpty ? "DevEz's DNS server isn't running" : dns.wildcardProblem
+        return "*.\(tld) doesn't resolve: \(problem). macOS has no hosts-file fallback, so sites don't open until it does; `devez install` sets /etc/resolver/\(tld) up again."
     }
 
     private func setLaunchAtLogin(_ on: Bool) {

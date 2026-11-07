@@ -196,7 +196,7 @@ struct SitesPane: View {
                 newProxyUpstreamState.wrappedValue = ""
             }
         } message: {
-            Text("Flock serves <name>.\(model.status?.dns.tld ?? "test") from a server of its own, e.g. a Next.js, Nuxt or Vite dev server. A port means 127.0.0.1.")
+            Text("DevEz serves <name>.\(model.status?.dns.tld ?? "test") from a server of its own, e.g. a Next.js, Nuxt or Vite dev server. A port means 127.0.0.1.")
         }
         .alert("Change the upstream of \(editingUpstream ?? "")", isPresented: Binding(get: { editingUpstream != nil }, set: { if !$0 { editingUpstream = nil } })) {
             TextField("Port, host:port or URL", text: upstreamDraftState.projectedValue)
@@ -325,7 +325,7 @@ struct SitesPane: View {
                     Button {
                         confirm = ConfirmAction(
                             title: "Remove \(proxy.name)?", button: "Remove", destructive: true,
-                            message: "Flock stops serving \(proxy.domain). The server at \(proxy.upstream) keeps running.",
+                            message: "DevEz stops serving \(proxy.domain). The server at \(proxy.upstream) keeps running.",
                             run: { [name = proxy.name] client in try await client.removeProxy(name) })
                     } label: { Image(systemName: "minus.circle") }
                         .help("Remove proxy")
@@ -373,7 +373,7 @@ struct SitesPane: View {
                         .controlSize(.small)
                     }
                 }
-                Text("Every request passes to the upstream with its Host header, WebSocket upgrades (hot reload) included. Flock doesn't start the server, so start it as usual. Until it answers, \(proxy.domain) shows a page saying so.")
+                Text("Every request passes to the upstream with its Host header, WebSocket upgrades (hot reload) included. DevEz doesn't start the server, so start it as usual. Until it answers, \(proxy.domain) shows a page saying so.")
                     .font(.caption).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -444,7 +444,7 @@ struct SitesPane: View {
                         Button {
                             confirm = ConfirmAction(
                                 title: "Remove \(site.name)?", button: "Remove", destructive: true,
-                                message: "Flock stops serving \(site.domain). The project in \(site.path) is not touched.",
+                                message: "DevEz stops serving \(site.domain). The project in \(site.path) is not touched.",
                                 run: { [name = site.name] client in try await client.unlinkSite(name) })
                         } label: { Image(systemName: "minus.circle") }
                             .help("Remove site")
@@ -573,14 +573,14 @@ struct SitesPane: View {
     /// project; then the installed versions, which isolate the site. The tag "" means "follow".
     private func versionPicker(label: String, current: String, source: Status.VersionSource, pinned: String, file: String,
                                defaultVersion: String, installed: [String], change: @escaping (String) -> Void) -> some View {
-        // On the first run there's no default until Flock has installed one.
+        // On the first run there's no default until DevEz has installed one.
         let follow = !pinned.isEmpty ? "Use \(fileName(file)) (\(label) \(pinned))"
             : defaultVersion.isEmpty ? "Default" : "Default (\(label) \(defaultVersion))"
         let versions = source == .isolated && !current.isEmpty && !installed.contains(current) ? installed + [current] : installed
         let help: String = switch source {
         case .isolated: "\(label) \(current) is set for this site on this machine (isolated)."
         case .project: "The project pins \(label) \(pinned) in \(fileName(file))."
-        case .default: "The site follows Flock's default \(label) version."
+        case .default: "The site follows DevEz's default \(label) version."
         }
         return Picker(label, selection: Binding(
             get: { source == .isolated ? current : "" },
@@ -618,7 +618,7 @@ struct SitesPane: View {
         let help: String = switch site.rootSource {
         case .isolated: "\(rootLabel(site.root)) is set for this site on this machine."
         case .project: "The project sets \(rootLabel(site.root)) in .flockrc."
-        case .default: "Flock serves the first of public/, www/, web/ and webroot/ with an index.php, else the project folder."
+        case .default: "DevEz serves the first of public/, www/, web/ and webroot/ with an index.php, else the project folder."
         }
         return Picker("Document root", selection: Binding(
             get: { site.rootSource == .isolated ? site.root : "" },
@@ -664,7 +664,7 @@ struct SitesPane: View {
         let store = model.settings
         switch site.rootState {
         case .notFound:
-            Text("No public/, www/, web/ or webroot/ with an index.php was found, so Flock shows a page instead of the site. Choose the folder with the app's index.php.")
+            Text("No public/, www/, web/ or webroot/ with an index.php was found, so DevEz shows a page instead of the site. Choose the folder with the app's index.php.")
                 .font(.caption).foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
         case .missing:
@@ -672,7 +672,7 @@ struct SitesPane: View {
                 .font(.caption).foregroundStyle(.orange)
                 .fixedSize(horizontal: false, vertical: true)
         case .empty:
-            Text("\(rootLabel(site.root)) has no index.php or index.html, so Flock shows a page instead of the site until it does.")
+            Text("\(rootLabel(site.root)) has no index.php or index.html, so DevEz shows a page instead of the site until it does.")
                 .font(.caption).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         case .ok:
@@ -687,7 +687,7 @@ struct SitesPane: View {
                 .font(.caption).foregroundStyle(.orange)
             }
         }
-        Text("The folder Flock serves the site from. One picked here applies on this machine only; pin it (\(Image(systemName: "pin"))) to write it into .flockrc for everyone.")
+        Text("The folder DevEz serves the site from. One picked here applies on this machine only; pin it (\(Image(systemName: "pin"))) to write it into .flockrc for everyone.")
             .font(.caption).foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
     }
@@ -999,19 +999,19 @@ struct SitesPane: View {
         return NSItemProvider(item: data as NSData, typeIdentifier: UTType.png.identifier)
     }
 
-    /// The project uses Laravel Boost, and Flock's guideline is missing from it or outdated.
+    /// The project uses Laravel Boost, and DevEz's guideline is missing from it or outdated.
     private func boost(_ site: Status.Site) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(site.boost == .missing
-                 ? "The project uses Laravel Boost. Adding Flock to its guidelines tells AI agents that Flock serves the app and picks its PHP version."
-                 : "Flock's guideline in the project's Boost guidelines is outdated.")
+                 ? "The project uses Laravel Boost. Adding DevEz to its guidelines tells AI agents that DevEz serves the app and picks its PHP version."
+                 : "DevEz's guideline in the project's Boost guidelines is outdated.")
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Button(site.boost == .missing ? "Add Flock to its guidelines…" : "Update it…") {
+            Button(site.boost == .missing ? "Add DevEz to its guidelines…" : "Update it…") {
                 confirm = ConfirmAction(
-                    title: site.boost == .missing ? "Add Flock to \(site.name)'s Boost guidelines?" : "Update Flock's guideline in \(site.name)?",
+                    title: site.boost == .missing ? "Add DevEz to \(site.name)'s Boost guidelines?" : "Update DevEz's guideline in \(site.name)?",
                     button: site.boost == .missing ? "Add" : "Update",
-                    message: "Writes .ai/guidelines/flock.md in \(site.path) and runs php artisan boost:update, so AI agents know Flock serves the app and picks its PHP version. Commit it with the rest of .ai/guidelines. This changes files in your project.",
+                    message: "Writes .ai/guidelines/flock.md in \(site.path) and runs php artisan boost:update, so AI agents know DevEz serves the app and picks its PHP version. Commit it with the rest of .ai/guidelines. This changes files in your project.",
                     run: { [name = site.name] client in try await client.addBoostGuideline(site: name) })
             }
             .buttonStyle(.link)
@@ -1031,7 +1031,7 @@ struct SitesPane: View {
                 Button("Pin PHP \(site.php) to Project…") {
                     confirm = ConfirmAction(
                         title: "Pin PHP \(site.php) to \(site.name)?", button: "Pin",
-                        message: "Writes php=\(site.php) to .flockrc in \(site.path). Commit it, and everyone using Flock on this project gets PHP \(site.php). This changes a file in your project.",
+                        message: "Writes php=\(site.php) to .flockrc in \(site.path). Commit it, and everyone using DevEz on this project gets PHP \(site.php). This changes a file in your project.",
                         run: { [name = site.name, php = site.php] client in try await client.pin(site: name, tool: "php", version: php) })
                 }
             }
@@ -1039,15 +1039,15 @@ struct SitesPane: View {
                 Button("Pin Node \(nodeMajor) to Project…") {
                     confirm = ConfirmAction(
                         title: "Pin Node \(nodeMajor) to \(site.name)?", button: "Pin",
-                        message: "Writes \(nodeMajor) to \(nodeFile) in \(site.path). Commit it, and Flock, nvm and other Node tools use Node \(nodeMajor) for this project. This changes a file in your project.",
-                        run: { [name = site.name] client in try await client.pin(site: name, tool: "node", version: nodeMajor) })
+                        message: "Writes \(nodeMajor) to \(nodeFile) in \(site.path). Commit it, and DevEz, nvm and other Node tools use Node \(nodeMajor) for this project. This changes a file in your project.",
+                        run: { [name = site.name, tool = "node", version = nodeMajor] client in try await client.pin(site: name, tool: tool, version: version) })
                 }
             }
             if canPinRoot {
                 Button("Pin Document Root (\(rootLabel(site.root))) to Project…") {
                     confirm = ConfirmAction(
                         title: "Pin the document root \(rootLabel(site.root)) to \(site.name)?", button: "Pin",
-                        message: "Writes root=\(site.root) to .flockrc in \(site.path). Commit it, and everyone using Flock on this project serves it from \(rootLabel(site.root)). This changes a file in your project.",
+                        message: "Writes root=\(site.root) to .flockrc in \(site.path). Commit it, and everyone using DevEz on this project serves it from \(rootLabel(site.root)). This changes a file in your project.",
                         run: { [name = site.name, root = site.root] client in try await client.pin(site: name, tool: "root", version: root) })
                 }
             }
@@ -1058,7 +1058,7 @@ struct SitesPane: View {
                 Button("Unpin PHP (\(fileName(site.phpFile)))…") {
                     confirm = ConfirmAction(
                         title: "Unpin PHP from \(site.name)?", button: "Unpin",
-                        message: "Removes the PHP version from \(site.phpFile). The site then uses Flock's default PHP. This changes files in your project.",
+                        message: "Removes the PHP version from \(site.phpFile). The site then uses DevEz's default PHP. This changes files in your project.",
                         run: { [name = site.name] client in try await client.unpin(site: name, tool: "php") })
                 }
             }
@@ -1066,7 +1066,7 @@ struct SitesPane: View {
                 Button("Unpin Node (\(fileName(site.nodeFile)))…") {
                     confirm = ConfirmAction(
                         title: "Unpin Node from \(site.name)?", button: "Unpin",
-                        message: "Removes the Node.js version from .flockrc and deletes .nvmrc / .node-version in \(site.path). The site then uses Flock's default Node.js. This changes files in your project.",
+                        message: "Removes the Node.js version from .flockrc and deletes .nvmrc / .node-version in \(site.path). The site then uses DevEz's default Node.js. This changes files in your project.",
                         run: { [name = site.name] client in try await client.unpin(site: name, tool: "node") })
                 }
             }
@@ -1074,7 +1074,7 @@ struct SitesPane: View {
                 Button("Unpin Document Root (.flockrc)…") {
                     confirm = ConfirmAction(
                         title: "Unpin the document root from \(site.name)?", button: "Unpin",
-                        message: "Removes root= from .flockrc in \(site.path). Flock then finds the document root itself. This changes files in your project.",
+                        message: "Removes root= from .flockrc in \(site.path). DevEz then finds the document root itself. This changes files in your project.",
                         run: { [name = site.name] client in try await client.unpin(site: name, tool: "root") })
                 }
             }

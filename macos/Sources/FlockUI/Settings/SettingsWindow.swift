@@ -111,19 +111,19 @@ struct SettingsWindow: View {
         if model.status == nil, pane != .about {
             if model.needsSetup {
                 ContentUnavailableView {
-                    Label { Text("Flock isn't set up yet") } icon: { LogoMark(size: 44) }
+                    Label { Text("DevEz isn't set up yet") } icon: { LogoMark(size: 44) }
                 } description: {
-                    Text("Set Flock up to run your sites and change its settings.")
+                    Text("Set DevEz up to run your sites and change its settings.")
                 } actions: {
-                    Button("Set Up Flock…") { openWindow.activating(WindowID.setup) }
+                    Button("Set Up DevEz…") { openWindow.activating(WindowID.setup) }
                 }
             } else {
                 ContentUnavailableView {
-                    Label { Text("Flock is not running") } icon: { LogoMark(size: 44) }
+                    Label { Text("DevEz is not running") } icon: { LogoMark(size: 44) }
                 } description: {
                     Text(model.error ?? "Start the daemon to change its settings.")
                 } actions: {
-                    Button("Start Flock") { Task { await model.restart() } }
+                    Button("Start DevEz") { Task { await model.restart() } }
                         .disabled(model.isRestarting)
                 }
             }

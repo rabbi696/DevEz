@@ -33,7 +33,7 @@ struct ServicesPane: View {
                 .fixedSize()
                 .padding(.trailing, 20)
                 .padding(.bottom, 6)
-                .help("Show only installed services, or every service Flock offers")
+                .help("Show only installed services, or every service DevEz offers")
             }
 
             HStack(spacing: 0) {
@@ -63,7 +63,7 @@ struct ServicesPane: View {
                         }
                         .buttonStyle(.link)
                         .padding(.vertical, 4)
-                        .help("Show every service Flock offers: MySQL, Redis, Meilisearch and more")
+                        .help("Show every service DevEz offers: MySQL, Redis, Meilisearch and more")
                     }
                 }
                 .listStyle(.inset)
@@ -400,14 +400,14 @@ struct ServiceInfo: View {
         switch service.id {
         case "web":
             return service.running
-                ? "Caddy serves every site over HTTPS (https://app.\(tld)) with certificates from Flock's local certificate authority, which `flock install` trusts."
-                : "Sites don't open while the web server is down. Its log may tell why; `flock restart` starts it again."
+                ? "Caddy serves every site over HTTPS (https://app.\(tld)) with certificates from DevEz's local certificate authority, which `devez install` trusts."
+                : "Sites don't open while the web server is down. Its log may tell why; `devez restart` starts it again."
         case "dns":
             if !dnsBroken {
-                return "macOS sends every name under .\(tld) here (/etc/resolver/\(tld), set up by `flock install`), so any subdomain of a site works (tenant1.app.\(tld), a.b.app.\(tld)) without adding it."
+                return "macOS sends every name under .\(tld) here (/etc/resolver/\(tld), set up by `devez install`), so any subdomain of a site works (tenant1.app.\(tld), a.b.app.\(tld)) without adding it."
             }
             let problem = service.problem.isEmpty ? "the DNS server isn't running" : service.problem
-            return "*.\(tld) doesn't resolve: \(problem). macOS has no hosts-file fallback, so sites don't open until it does; `flock install` sets /etc/resolver/\(tld) up again."
+            return "*.\(tld) doesn't resolve: \(problem). macOS has no hosts-file fallback, so sites don't open until it does; `devez install` sets /etc/resolver/\(tld) up again."
         default:
             return nil
         }

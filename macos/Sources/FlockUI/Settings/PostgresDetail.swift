@@ -165,7 +165,7 @@ struct PostgresDetail: View {
     // MARK: Command-line tools
 
     private var commandLineTools: some View {
-        Label("psql, pg_dump and the other command-line tools come with PostgreSQL. In Terminal, Flock uses those of the newest installed version, which work with every version above and with remote servers.",
+        Label("psql, pg_dump and the other command-line tools come with PostgreSQL. In Terminal, DevEz uses those of the newest installed version, which work with every version above and with remote servers.",
               systemImage: "terminal")
             .font(.caption).foregroundStyle(.secondary)
             .fixedSize(horizontal: false, vertical: true)
@@ -223,7 +223,7 @@ private struct ActiveServerCard: View {
                 Label(major.update ? "This build was withdrawn: \(major.yanked) — update to replace it" : "This build was withdrawn: \(major.yanked)",
                       systemImage: "exclamationmark.triangle.fill")
                     .font(.callout).foregroundStyle(.orange)
-                    .help("Flock replaces it as soon as a fixed build is published.")
+                    .help("DevEz replaces it as soon as a fixed build is published.")
             }
 
             if major.update, !major.latest.isEmpty {
@@ -292,7 +292,7 @@ private struct PostgresMajorRow: View {
                         }
                         if !major.yanked.isEmpty {
                             Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-                                .help("This build was withdrawn: \(major.yanked). Flock replaces it as soon as a fixed build is published.")
+                                .help("This build was withdrawn: \(major.yanked). DevEz replaces it as soon as a fixed build is published.")
                         }
                     } else {
                         Text("Not installed").foregroundStyle(.secondary)
@@ -529,7 +529,7 @@ private struct UninstallPostgresSheet: View {
         }
         let next = versions?.majors.first { $0.isInstalled && $0.major != major.major }
         if let next {
-            return "PostgreSQL \(major.major) stops and Flock switches to PostgreSQL \(next.major) with its own databases."
+            return "PostgreSQL \(major.major) stops and DevEz switches to PostgreSQL \(next.major) with its own databases."
         }
         return "PostgreSQL \(major.major) stops, and your sites can't use PostgreSQL until you install a version again."
     }

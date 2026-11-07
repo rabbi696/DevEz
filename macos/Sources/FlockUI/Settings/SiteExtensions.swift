@@ -110,7 +110,7 @@ struct SiteExtensionsSheet: View {
     private func detail(_ ext: PHPExtension) -> String {
         var text = ext.declared ? "Required by \(ext.requiredBy.joined(separator: ", "))" : "Not required, but used: \(ext.hint)"
         if !ext.available {
-            text += " — Flock's PHP \(report?.php ?? "") doesn't include it"
+            text += " — DevEz's PHP \(report?.php ?? "") doesn't include it"
         }
         return text
     }

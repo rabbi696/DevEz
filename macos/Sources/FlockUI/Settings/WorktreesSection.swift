@@ -153,7 +153,7 @@ struct WorktreeDetail: View {
             Button("Remove", role: .destructive) { remove(force: false) }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Flock runs its before_delete hook and deletes \(worktree.path)\(ownDatabase.isEmpty ? "" : " and its database \(ownDatabase)"). \(worktree.branch.isEmpty ? "Commits" : "The branch \(worktree.branch)") stays.")
+            Text("DevEz runs its before_delete hook and deletes \(worktree.path)\(ownDatabase.isEmpty ? "" : " and its database \(ownDatabase)"). \(worktree.branch.isEmpty ? "Commits" : "The branch \(worktree.branch)") stays.")
         }
         .alert("Couldn't remove \(worktree.worktreeLabel)", isPresented: Binding(get: { removeError != nil }, set: { if !$0 { removeError = nil } })) {
             Button("Remove Anyway", role: .destructive) { remove(force: true) }
@@ -208,7 +208,7 @@ struct WorktreeDetail: View {
         case .ready:
             Label("Set up", systemImage: "checkmark.circle").font(.callout).foregroundStyle(.secondary)
         case .unknown, nil:
-            Text("Flock hasn't set this worktree up: it existed before Flock could, or flock.yml turns setting up off.")
+            Text("DevEz hasn't set this worktree up: it existed before DevEz could, or flock.yml turns setting up off.")
                 .font(.callout).foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -231,8 +231,8 @@ struct WorktreeDetail: View {
     private func switchMessage(_ mode: DatabaseMode) -> String {
         let new = switch mode {
         case .shared: "It will use \(parent)'s database."
-        case .copy: "Flock copies \(parent)'s database for it and runs the migrations."
-        case .fresh: "Flock creates an empty database for it and runs the migrations."
+        case .copy: "DevEz copies \(parent)'s database for it and runs the migrations."
+        case .fresh: "DevEz creates an empty database for it and runs the migrations."
         }
         return ownDatabase.isEmpty ? new : "\(new) Its database \(ownDatabase) is dropped."
     }
@@ -375,10 +375,10 @@ private struct NewWorktreeSheet: View {
     private var explanation: String {
         let address = branch.isEmpty ? "its own address" : "\(slug).\(site.domain)"
         if exists {
-            return "\(branch) exists, so the worktree checks it out. Flock creates it next to \(site.name), sets it up and serves it at \(address)."
+            return "\(branch) exists, so the worktree checks it out. DevEz creates it next to \(site.name), sets it up and serves it at \(address)."
         }
         let name = branch.isEmpty ? "a new branch with a name of its own" : "the new branch \(branch)"
-        return "Flock creates the worktree next to \(site.name) on \(name), sets it up and serves it at \(address)."
+        return "DevEz creates the worktree next to \(site.name) on \(name), sets it up and serves it at \(address)."
     }
 
     /// The name it's served under, as Flock makes it from the branch (config.WorktreeSlug).
@@ -491,7 +491,7 @@ struct WorktreeJobView: View {
             case .starting, .running:
                 Button("Hide") { close(nil) }
                     .keyboardShortcut(.cancelAction)
-                    .help("The setup goes on; Flock tells you if it fails")
+                    .help("The setup goes on; DevEz tells you if it fails")
             case .ready:
                 if let worktree, worktree.url != nil {
                     Button("Open in Browser") { model.open(worktree) }

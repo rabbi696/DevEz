@@ -16,7 +16,7 @@ struct AIPane: View {
         let store = model.settings
 
         VStack(spacing: 0) {
-            PaneHeader(title: "AI", subtitle: "Let AI agents like Claude Code and Cursor work with Flock: your sites' URLs and PHP versions, logs, dumps and mail, and installing versions and services.")
+            PaneHeader(title: "AI", subtitle: "Let AI agents like Antigravity, Claude Code and Cursor work with DevEz: your sites' URLs and PHP versions, logs, dumps and mail, and installing versions and services.")
             Form {
                 Section {
                     if let mcp = store.mcp {
@@ -29,7 +29,7 @@ struct AIPane: View {
                 } header: {
                     Text("AI clients")
                 } footer: {
-                    Text("Added once, Flock works in every project. Restart the client, or reload its MCP servers, after adding Flock.")
+                    Text("Added once, DevEz works in every project. Restart the client, or reload its MCP servers, after adding DevEz.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
                 Section {
@@ -83,7 +83,7 @@ struct AIPane: View {
 
     private func caption(_ client: MCPClient) -> String {
         switch client.state {
-        case .registered: "Flock is added"
+        case .registered: "DevEz is added"
         case .available: "Installed"
         case .missing: "Not installed"
         }

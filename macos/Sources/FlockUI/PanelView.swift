@@ -185,7 +185,7 @@ struct PanelView: View {
         VStack(alignment: .leading, spacing: 4) {
             SectionTitle("Sites")
             if sites.isEmpty && proxies.isEmpty {
-                Text("No sites yet — run `flock link` or `flock park`.")
+                Text("No sites yet — run `devez link` or `devez park`.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {

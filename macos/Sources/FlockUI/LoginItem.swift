@@ -17,7 +17,7 @@ enum LoginItem {
             return "Could not change the login item: \(error.localizedDescription)"
         }
         return SMAppService.mainApp.status == .requiresApproval
-            ? "Allow Flock in System Settings → General → Login Items."
+            ? "Allow DevEz in System Settings → General → Login Items."
             : nil
     }
 }

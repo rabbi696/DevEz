@@ -11,7 +11,7 @@ struct MailPane: View {
         let mail = store.services.first { $0.id == "mail" }
 
         VStack(spacing: 0) {
-            PaneHeader(title: "Mail", subtitle: "Flock catches every email your apps send — nothing leaves your Mac.")
+            PaneHeader(title: "Mail", subtitle: "DevEz catches every email your apps send — nothing leaves your Mac.")
             Form {
                 Section("SMTP server") {
                     LabeledContent("Host", value: "127.0.0.1")
@@ -57,7 +57,7 @@ struct DumpsPane: View {
         let unsupported = model.status?.captureUnsupported ?? []
 
         VStack(spacing: 0) {
-            PaneHeader(title: "Dumps", subtitle: "Send dump() and dd() output, queries, logs, views and jobs to Flock instead of the page or terminal — no changes to your projects.")
+            PaneHeader(title: "Dumps", subtitle: "Send dump() and dd() output, queries, logs, views and jobs to DevEz instead of the page or terminal — no changes to your projects.")
             Form {
                 Section {
                     Toggle("Capture", isOn: Binding(get: { capturing }, set: { on in Task { await model.setDumps(on, from: .settings) } }))
@@ -163,8 +163,8 @@ struct AboutPane: View {
         VStack(spacing: 14) {
             Spacer()
             AppIconView(size: 88)
-            Text("Flock").font(.largeTitle.weight(.semibold))
-            Text("A native local development environment for Laravel.")
+            Text("DevEz").font(.largeTitle.weight(.semibold))
+            Text("A native local development environment for Laravel & PHP.")
                 .foregroundStyle(.secondary)
             Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
                 GridRow {
@@ -179,19 +179,19 @@ struct AboutPane: View {
             .font(.callout)
             HStack {
                 Button("Data Folder") { reveal(FlockPaths.root.path) }
-                Button("Flock Docs") { NSWorkspace.shared.open(URL(string: "https://flockphp.com/docs")!) }
-                Button("License") { NSWorkspace.shared.open(URL(string: "https://github.com/flock-php/flock/blob/main/LICENSE")!) }
+                Button("GitHub") { NSWorkspace.shared.open(URL(string: "https://github.com/rabbi696/DevEz")!) }
+                Button("License") { NSWorkspace.shared.open(URL(string: "https://github.com/rabbi696/DevEz/blob/main/LICENSE")!) }
             }
             Button("Found a bug? Report an issue") { NSWorkspace.shared.open(issueURL) }
                 .buttonStyle(.link)
                 .font(.callout)
-            Text("Copyright © Guava s.r.o. Licensed under the AGPL-3.0.")
+            Text("DevEz — Native Laravel & PHP Suite. Licensed under AGPL-3.0.")
                 .font(.caption).foregroundStyle(.secondary)
             Spacer()
             VStack(spacing: 6) {
-                Button("Uninstall Flock…") { uninstallingState.wrappedValue = true }
+                Button("Uninstall DevEz…") { uninstallingState.wrappedValue = true }
                     .disabled(model.installation.uninstaller == nil)
-                Text("Stops Flock and removes it from this Mac. Your sites, databases and settings are kept.")
+                Text("Stops DevEz and removes it from this Mac. Your sites, databases and settings are kept.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             .padding(.bottom, 20)
@@ -204,7 +204,7 @@ struct AboutPane: View {
 
     /// A blank GitHub issue with the versions filled in, so reports say what they run on.
     private var issueURL: URL {
-        var components = URLComponents(string: "https://github.com/flock-php/flock/issues/new")!
+        var components = URLComponents(string: "https://github.com/rabbi696/DevEz/issues/new")!
         let body = "\n\n---\nApp: \(Updater.appVersion)\nDaemon: \(model.status?.version ?? "not running")\nOS: macOS \(ProcessInfo.processInfo.operatingSystemVersionString)\n"
         components.queryItems = [URLQueryItem(name: "body", value: body)]
         return components.url!
@@ -235,8 +235,8 @@ private struct UninstallSheet: View {
         VStack(alignment: .leading, spacing: 12) {
             switch stage {
             case .confirm:
-                Text("Uninstall Flock?").font(.headline)
-                Text("Flock stops and is removed from your PATH, together with its PHP and Node.js versions, certificates, logs and caches. macOS asks for your password to remove the *.test DNS setup and Flock's trusted certificate. Then this app moves itself to the Trash.")
+                Text("Uninstall DevEz?").font(.headline)
+                Text("DevEz stops and is removed from your PATH, together with its PHP and Node.js versions, certificates, logs and caches. macOS asks for your password to remove the *.test DNS setup and DevEz's trusted certificate. Then this app moves itself to the Trash.")
                     .fixedSize(horizontal: false, vertical: true)
                 Text("Your sites' settings and your PostgreSQL and Redis databases stay in \(FlockPaths.root.path), so reinstalling picks up where you left off — unless you also delete them:")
                     .foregroundStyle(.secondary)
@@ -253,20 +253,20 @@ private struct UninstallSheet: View {
             case .running:
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
-                    Text("Uninstalling Flock…").font(.headline)
+                    Text("Uninstalling DevEz…").font(.headline)
                 }
                 log
 
             case .done:
-                Text("Flock was uninstalled").font(.headline)
+                Text("DevEz was uninstalled").font(.headline)
                 Text(model.installedAppURL == nil
-                    ? "This copy of the app isn't in an Applications folder, so it stays where it is; delete it yourself. Open a new terminal: Flock is no longer on its PATH."
-                    : "Quitting moves Flock.app to the Trash. Open a new terminal: Flock is no longer on its PATH.")
+                    ? "This copy of the app isn't in an Applications folder, so it stays where it is; delete it yourself. Open a new terminal: DevEz is no longer on its PATH."
+                    : "Quitting moves DevEz.app to the Trash. Open a new terminal: DevEz is no longer on its PATH.")
                     .fixedSize(horizontal: false, vertical: true)
                 log
                 HStack {
                     Spacer()
-                    Button("Quit Flock") { model.removeAppAndQuit() }
+                    Button("Quit DevEz") { model.removeAppAndQuit() }
                         .keyboardShortcut(.defaultAction)
                 }
 
