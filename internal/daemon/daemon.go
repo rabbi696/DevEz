@@ -731,12 +731,13 @@ func (d *daemon) reload() error {
 		if site.Queue {
 			artisan := filepath.Join(site.Path, "artisan")
 			if _, err := os.Stat(artisan); err == nil {
+				safeName := strings.ReplaceAll(site.Name, "/", "-")
 				qSpec := supervisor.Spec{
-					Name:    "queue-" + site.Name,
+					Name:    "queue-" + safeName,
 					Path:    php.Binary(d.root, version),
 					Args:    []string{artisan, "queue:work", "--tries=3"},
 					Dir:     site.Path,
-					LogFile: filepath.Join(d.root, "log", "queue-"+site.Name+".log"),
+					LogFile: filepath.Join(d.root, "log", "queue-"+safeName+".log"),
 				}
 				d.procs.Ensure(qSpec)
 				keep[qSpec.Name] = true
@@ -745,12 +746,13 @@ func (d *daemon) reload() error {
 		if site.Schedule {
 			artisan := filepath.Join(site.Path, "artisan")
 			if _, err := os.Stat(artisan); err == nil {
+				safeName := strings.ReplaceAll(site.Name, "/", "-")
 				sSpec := supervisor.Spec{
-					Name:    "schedule-" + site.Name,
+					Name:    "schedule-" + safeName,
 					Path:    php.Binary(d.root, version),
 					Args:    []string{artisan, "schedule:work"},
 					Dir:     site.Path,
-					LogFile: filepath.Join(d.root, "log", "schedule-"+site.Name+".log"),
+					LogFile: filepath.Join(d.root, "log", "schedule-"+safeName+".log"),
 				}
 				d.procs.Ensure(sSpec)
 				keep[sSpec.Name] = true

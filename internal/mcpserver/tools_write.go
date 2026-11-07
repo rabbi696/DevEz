@@ -163,6 +163,10 @@ type getDatabaseInfoOut struct {
 }
 
 func (s *server) runArtisan(ctx context.Context, _ *mcp.CallToolRequest, in runArtisanIn) (*mcp.CallToolResult, runArtisanOut, error) {
+	if strings.TrimSpace(in.Command) == "" {
+		return nil, runArtisanOut{}, errors.New("command cannot be empty")
+	}
+
 	st, err := s.site(ctx, in.Site)
 	if err != nil {
 		return nil, runArtisanOut{}, err
@@ -180,9 +184,13 @@ func (s *server) runArtisan(ctx context.Context, _ *mcp.CallToolRequest, in runA
 		}
 	}
 
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+
 	args := append([]string{artisan}, strings.Fields(in.Command)...)
 	cmd := exec.CommandContext(ctx, phpBin, args...)
 	cmd.Dir = st.Path
+	cmd.Env = append(os.Environ(), "DEVEZ_RUNNING=1")
 	out, runErr := cmd.CombinedOutput()
 	exitCode := 0
 	if runErr != nil {

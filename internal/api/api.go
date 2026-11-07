@@ -327,6 +327,11 @@ func NewHandler(b Backend, token string) http.Handler {
 func requireToken(token string, next http.Handler) http.Handler {
 	want := []byte("Bearer " + token)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Protect against cross-site request forgery from external web pages
+		if r.Header.Get("Sec-Fetch-Site") == "cross-site" {
+			writeError(w, http.StatusForbidden, errors.New("cross-site requests forbidden"))
+			return
+		}
 		if strings.HasPrefix(r.URL.Path, "/mail") || strings.HasPrefix(r.URL.Path, "/v1/mail") {
 			next.ServeHTTP(w, r)
 			return

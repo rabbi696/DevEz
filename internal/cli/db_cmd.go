@@ -76,18 +76,24 @@ func newDBCommand() *cobra.Command {
 				return err
 			}
 
+			cleanFilename := filepath.Clean(filename)
 			cfg := parseEnvDB(site.Path)
-			cmd.Printf("Dumping database %q (%s) to %s…\n", cfg.Database, cfg.Driver, filename)
+			cmd.Printf("Dumping database %q (%s) to %s…\n", cfg.Database, cfg.Driver, cleanFilename)
 
 			var dumpCmd *exec.Cmd
 			switch cfg.Driver {
 			case "pgsql", "postgres", "postgresql":
-				dumpCmd = exec.Command("pg_dump", "-h", cfg.Host, "-p", cfg.Port, "-U", cfg.Username, "-d", cfg.Database, "-f", filename)
+				dumpCmd = exec.Command("pg_dump", "-h", cfg.Host, "-p", cfg.Port, "-U", cfg.Username, "-d", cfg.Database, "-f", cleanFilename)
 				if cfg.Password != "" {
 					dumpCmd.Env = append(os.Environ(), "PGPASSWORD="+cfg.Password)
 				}
 			case "mysql", "mariadb":
-				dumpCmd = exec.Command("mysqldump", "-h", cfg.Host, "-P", cfg.Port, "-u", cfg.Username, "-p"+cfg.Password, cfg.Database, "-r", filename)
+				myArgs := []string{"-h", cfg.Host, "-P", cfg.Port, "-u", cfg.Username}
+				if cfg.Password != "" {
+					myArgs = append(myArgs, "-p"+cfg.Password)
+				}
+				myArgs = append(myArgs, cfg.Database, "-r", cleanFilename)
+				dumpCmd = exec.Command("mysqldump", myArgs...)
 			default:
 				return fmt.Errorf("unsupported database driver for dump: %q", cfg.Driver)
 			}
@@ -97,7 +103,7 @@ func newDBCommand() *cobra.Command {
 				return fmt.Errorf("dump failed: %w", err)
 			}
 
-			cmd.Printf("✓ Database exported successfully to %s\n", filename)
+			cmd.Printf("✓ Database exported successfully to %s\n", cleanFilename)
 			return nil
 		},
 	}
@@ -107,7 +113,7 @@ func newDBCommand() *cobra.Command {
 		Short: "Import an SQL dump file into the project database",
 		Args:  cobra.RangeArgs(1, 2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			filename := args[0]
+			filename := filepath.Clean(args[0])
 			siteArgs := []string{}
 			if len(args) > 1 {
 				siteArgs = []string{args[1]}
@@ -140,7 +146,12 @@ func newDBCommand() *cobra.Command {
 					impCmd.Env = append(os.Environ(), "PGPASSWORD="+cfg.Password)
 				}
 			case "mysql", "mariadb":
-				impCmd = exec.Command("mysql", "-h", cfg.Host, "-P", cfg.Port, "-u", cfg.Username, "-p"+cfg.Password, cfg.Database)
+				myArgs := []string{"-h", cfg.Host, "-P", cfg.Port, "-u", cfg.Username}
+				if cfg.Password != "" {
+					myArgs = append(myArgs, "-p"+cfg.Password)
+				}
+				myArgs = append(myArgs, cfg.Database)
+				impCmd = exec.Command("mysql", myArgs...)
 			default:
 				return fmt.Errorf("unsupported database driver for import: %q", cfg.Driver)
 			}

@@ -20,8 +20,8 @@ struct LogoMark: View {
 
         var fallback: String {
             switch self {
-            case .running: "bird.fill"
-            case .stopped: "bird"
+            case .running: "server.rack"
+            case .stopped: "server.rack"
             case .warning: "exclamationmark.triangle.fill"
             }
         }
@@ -58,16 +58,15 @@ struct LogoMark: View {
 }
 
 extension Color {
-    /// The brand's logomark color: teal on light backgrounds, mint on dark (as the Windows app's
-    /// notification area icon).
+    /// DevEz signature brand color (Laravel Herd-inspired vibrant coral/red).
     static let flockMark = Color(nsColor: NSColor(name: nil) { appearance in
         appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(srgbRed: 0xEF / 255, green: 0xFC / 255, blue: 0xFD / 255, alpha: 1)
-            : NSColor(srgbRed: 0x0D / 255, green: 0x7A / 255, blue: 0x8C / 255, alpha: 1)
+            ? NSColor(srgbRed: 0xFF / 255, green: 0x4F / 255, blue: 0x43 / 255, alpha: 1)
+            : NSColor(srgbRed: 0xFF / 255, green: 0x2D / 255, blue: 0x20 / 255, alpha: 1)
     })
 
-    /// Ember, the brand's color for what needs attention now.
-    static let flockEmber = Color(.sRGB, red: 0xE8 / 255, green: 0x79 / 255, blue: 0x2B / 255)
+    /// Herd amber / orange for warnings or degraded states.
+    static let flockEmber = Color(.sRGB, red: 0xFB / 255, green: 0x92 / 255, blue: 0x3C / 255)
 }
 
 /// The app icon, as Finder shows it (the tile is 80% of it: Apple's icon grid leaves room for the shadow).

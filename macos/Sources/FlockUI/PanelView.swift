@@ -65,7 +65,7 @@ struct PanelView: View {
                 // The stopped image is already dimmed.
                 .foregroundStyle(model.isRunning && model.isDegraded ? Color.flockEmber : Color.flockMark)
             VStack(alignment: .leading, spacing: 1) {
-                Text("Flock").font(.headline)
+                Text("DevEz").font(.headline)
                 Text(model.headline).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
@@ -75,11 +75,11 @@ struct PanelView: View {
         }
     }
 
-    /// A newer version of Flock; Update opens Sparkle's window to install it.
+    /// A newer version of DevEz; Update opens Sparkle's window to install it.
     private func updateRow(_ version: String) -> some View {
         HStack(spacing: 6) {
             Image(systemName: "arrow.down.circle.fill").foregroundStyle(Color.accentColor)
-            Text("Flock \(version) is available").font(.callout)
+            Text("DevEz \(version) is available").font(.callout)
             Spacer(minLength: 0)
             Button("Update") {
                 closePanel()
@@ -227,22 +227,22 @@ struct PanelView: View {
     private var notRunning: some View {
         if model.needsSetup {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Flock isn't set up on this Mac yet. Setup installs the daemon, puts php, composer and node on your PATH, and makes *.test sites work with trusted HTTPS.")
+                Text("DevEz isn't set up on this Mac yet. Setup installs the daemon, puts php, composer and node on your PATH, and makes *.test sites work with trusted HTTPS.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                Button("Set Up Flock…") {
+                Button("Set Up DevEz…") {
                     open(WindowID.setup)
                 }
                 .buttonStyle(.borderedProminent)
             }
         } else {
             VStack(alignment: .leading, spacing: 8) {
-                Text(model.isUpdating ? "Updating Flock…" : model.error ?? "Flock is not running")
+                Text(model.isUpdating ? "Updating DevEz…" : model.error ?? "DevEz is not running")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                Button("Start Flock") {
+                Button("Start DevEz") {
                     Task { await model.restart() }
                 }
                 .disabled(model.isRestarting || model.isUpdating)
@@ -264,7 +264,7 @@ struct PanelView: View {
                 .keyboardShortcut(",")
             }
             Spacer()
-            Button("Quit Flock Bar") {
+            Button("Quit DevEz") {
                 NSApp.terminate(nil)
             }
         }

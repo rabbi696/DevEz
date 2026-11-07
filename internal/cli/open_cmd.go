@@ -2,9 +2,11 @@ package cli
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -106,15 +108,26 @@ func detectEditor() string {
 	return "xdg-open"
 }
 
-func openURL(url string) error {
+func openURL(rawURL string) error {
+	u, err := url.Parse(rawURL)
+	if err != nil || u.Scheme == "" {
+		return fmt.Errorf("invalid URL %q", rawURL)
+	}
+	allowedSchemes := map[string]bool{
+		"http": true, "https": true, "postgres": true, "postgresql": true, "mysql": true, "sqlite": true,
+	}
+	if !allowedSchemes[strings.ToLower(u.Scheme)] {
+		return fmt.Errorf("unsupported URL scheme %q", u.Scheme)
+	}
+
 	var c *exec.Cmd
 	switch runtime.GOOS {
 	case "darwin":
-		c = exec.Command("open", url)
+		c = exec.Command("open", rawURL)
 	case "windows":
-		c = exec.Command("cmd", "/c", "start", url)
+		c = exec.Command("cmd", "/c", "start", rawURL)
 	default:
-		c = exec.Command("xdg-open", url)
+		c = exec.Command("xdg-open", rawURL)
 	}
 	return c.Start()
 }
