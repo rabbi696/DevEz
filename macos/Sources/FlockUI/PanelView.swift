@@ -361,6 +361,7 @@ private struct SiteList: View {
 }
 
 private struct SiteRow: View {
+    @Environment(AppModel.self) private var model
     let site: Status.Site
     /// How many git worktrees the site has, and whether they're shown under it.
     var worktrees = 0
@@ -377,6 +378,40 @@ private struct SiteRow: View {
     var body: some View {
         HStack(spacing: 2) {
             siteButton
+            if site.shared {
+                Button {
+                    if let urlStr = site.share?.url, !urlStr.isEmpty {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(urlStr, forType: .string)
+                    }
+                } label: {
+                    Image(systemName: "doc.on.doc")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .frame(width: 18, height: 18)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("Copy tunnel URL: \(site.share?.url ?? "")")
+            }
+            Button {
+                Task {
+                    if site.shared {
+                        await model.settings.perform { try await $0.stopShare(site: site.name) }
+                    } else {
+                        await model.settings.perform { _ = try await $0.startShare(site: site.name, allow: [], debug: false) }
+                    }
+                }
+            } label: {
+                Image(systemName: site.shared ? "antenna.radiowaves.left.and.right" : "network")
+                    .font(.caption2)
+                    .foregroundStyle(site.shared ? Color.green : (isHovered ? Color.secondary : Color.clear))
+                    .frame(width: 18, height: 18)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help(site.shared ? "Tunnel active: \(site.share?.url ?? ""). Click to stop." : "Start Cloudflare tunnel for \(site.name)")
+
             if worktrees > 0 {
                 // A button of its own: the row still opens the site.
                 Button(action: toggle) {
@@ -437,6 +472,46 @@ private struct SiteRow: View {
         .buttonStyle(.plain)
         .disabled(site.url == nil)
         .help(help)
+        .contextMenu {
+            Button("Open in Browser") {
+                open()
+            }
+            Divider()
+            if site.shared {
+                if let urlStr = site.share?.url, !urlStr.isEmpty {
+                    Button("Copy Tunnel URL") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(urlStr, forType: .string)
+                    }
+                    Button("Open Tunnel URL") {
+                        if let url = URL(string: urlStr) {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }
+                }
+                Button("Stop Cloudflare Tunnel") {
+                    Task {
+                        await model.settings.perform { try await $0.stopShare(site: site.name) }
+                    }
+                }
+            } else {
+                Button("Start Cloudflare Tunnel") {
+                    Task {
+                        await model.settings.perform { _ = try await $0.startShare(site: site.name, allow: [], debug: false) }
+                    }
+                }
+            }
+            Divider()
+            Button("Open in TablePlus / DB") {
+                let dbName = site.name.replacingOccurrences(of: "-", with: "_")
+                if let dbURL = URL(string: "mysql://root:@127.0.0.1:3306/\(dbName)") {
+                    NSWorkspace.shared.open(dbURL)
+                }
+            }
+            Button("Reveal in Finder") {
+                NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: site.path)])
+            }
+        }
     }
 
     /// The row's tooltip: where a site without a document root is fixed, else its address.

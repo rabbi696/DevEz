@@ -35,7 +35,7 @@
 - **`dump()` & debug timeline:** Captures `dump()` and `dd()` calls, database queries, logs, and rendered views without polluting HTML responses.
 - **On-demand Xdebug:** Keep Xdebug available when debugging without slowing down regular development requests.
 - **Git worktree support:** Each worktree automatically gets its own isolated domain and database.
-- **Public URL sharing:** Instantly share a local site over a temporary public URL via Cloudflare Tunnels (`devez share`).
+- **Public URL sharing & Cloudflare Tunnels:** Instantly share a local site over a temporary public URL via Cloudflare Tunnels. Toggle tunnels directly from the macOS menu bar panel (one-click toggle, context menu, and quick URL copy), run in the background via `devez tunnel on/off/status`, or share interactively via `devez share`.
 - **AI Agent & Antigravity MCP integration:** Built-in Model Context Protocol (MCP) server supporting Google Antigravity, Claude Code, Cursor, and Windsurf, with tools to run artisan commands, inspect DB parameters, check site health, and read error logs.
 
 ---
@@ -77,6 +77,12 @@ devez queue logs
 # Manage background task scheduler (Herd Pro feature)
 devez schedule start
 devez schedule status
+
+# Toggle background Cloudflare tunnels per site (without blocking terminal)
+devez tunnel on my-app      # starts tunnel in background and copies URL to clipboard
+devez tunnel status         # list all active public tunnels
+devez tunnel off my-app     # stops background tunnel
+devez tunnel my-app         # toggles tunnel on/off
 
 # Run system health diagnostics
 devez doctor
