@@ -362,6 +362,7 @@ private struct SiteList: View {
 
 private struct SiteRow: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.openWindow) private var openWindow
     let site: Status.Site
     /// How many git worktrees the site has, and whether they're shown under it.
     var worktrees = 0
@@ -378,39 +379,7 @@ private struct SiteRow: View {
     var body: some View {
         HStack(spacing: 2) {
             siteButton
-            if site.shared {
-                Button {
-                    if let urlStr = site.share?.url, !urlStr.isEmpty {
-                        NSPasteboard.general.clearContents()
-                        NSPasteboard.general.setString(urlStr, forType: .string)
-                    }
-                } label: {
-                    Image(systemName: "doc.on.doc")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .frame(width: 18, height: 18)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .help("Copy tunnel URL: \(site.share?.url ?? "")")
-            }
-            Button {
-                Task {
-                    if site.shared {
-                        await model.settings.perform { try await $0.stopShare(site: site.name) }
-                    } else {
-                        await model.settings.perform { _ = try await $0.startShare(site: site.name, allow: [], debug: false) }
-                    }
-                }
-            } label: {
-                Image(systemName: site.shared ? "antenna.radiowaves.left.and.right" : "network")
-                    .font(.caption2)
-                    .foregroundStyle(site.shared ? Color.green : (isHovered ? Color.secondary : Color.clear))
-                    .frame(width: 18, height: 18)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .help(site.shared ? "Tunnel active: \(site.share?.url ?? ""). Click to stop." : "Start Cloudflare tunnel for \(site.name)")
+            tunnelControls
 
             if worktrees > 0 {
                 // A button of its own: the row still opens the site.
@@ -429,6 +398,94 @@ private struct SiteRow: View {
         }
         .background(isHovered ? Color.primary.opacity(0.08) : .clear, in: RoundedRectangle(cornerRadius: 5))
         .onHover { isHovered = $0 }
+    }
+
+    @ViewBuilder
+    private var tunnelControls: some View {
+        if let share = site.share {
+            switch share.state {
+            case .running:
+                HStack(spacing: 2) {
+                    Button {
+                        if let urlStr = share.url, !urlStr.isEmpty {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(urlStr, forType: .string)
+                        }
+                    } label: {
+                        Image(systemName: "doc.on.doc")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 18, height: 18)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help("Copy tunnel URL: \(share.url ?? "")")
+
+                    Button {
+                        Task {
+                            await model.settings.perform { try await $0.stopShare(site: site.name) }
+                            await model.refresh()
+                        }
+                    } label: {
+                        Image(systemName: "antenna.radiowaves.left.and.right")
+                            .font(.caption2)
+                            .foregroundStyle(Color.green)
+                            .frame(width: 18, height: 18)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help("Tunnel active: \(share.url ?? ""). Click to stop.")
+                }
+            case .building, .starting, .unknown:
+                HStack(spacing: 4) {
+                    ProgressView().controlSize(.mini)
+                    Button {
+                        Task {
+                            await model.settings.perform { try await $0.stopShare(site: site.name) }
+                            await model.refresh()
+                        }
+                    } label: {
+                        Image(systemName: "xmark.circle")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 16, height: 16)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .help(share.state == .building ? "Building assets… Click to cancel." : "Starting tunnel… Click to cancel.")
+                }
+            case .failed:
+                Button {
+                    Task {
+                        await model.settings.perform { _ = try await $0.startShare(site: site.name, allow: [], debug: false) }
+                        await model.refresh()
+                    }
+                } label: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.caption2)
+                        .foregroundStyle(Color.orange)
+                        .frame(width: 18, height: 18)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .help("Tunnel failed: \(share.error ?? "error"). Click to retry.")
+            }
+        } else {
+            Button {
+                Task {
+                    await model.settings.perform { _ = try await $0.startShare(site: site.name, allow: [], debug: false) }
+                    await model.refresh()
+                }
+            } label: {
+                Image(systemName: "network")
+                    .font(.caption2)
+                    .foregroundStyle(isHovered ? Color.secondary : Color.clear)
+                    .frame(width: 18, height: 18)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .help("Start Cloudflare tunnel for \(site.name)")
+        }
     }
 
     private var siteButton: some View {
@@ -477,8 +534,8 @@ private struct SiteRow: View {
                 open()
             }
             Divider()
-            if site.shared {
-                if let urlStr = site.share?.url, !urlStr.isEmpty {
+            if let share = site.share, share.state == .running {
+                if let urlStr = share.url, !urlStr.isEmpty {
                     Button("Copy Tunnel URL") {
                         NSPasteboard.general.clearContents()
                         NSPasteboard.general.setString(urlStr, forType: .string)
@@ -492,14 +549,30 @@ private struct SiteRow: View {
                 Button("Stop Cloudflare Tunnel") {
                     Task {
                         await model.settings.perform { try await $0.stopShare(site: site.name) }
+                        await model.refresh()
+                    }
+                }
+            } else if let share = site.share, share.state == .starting || share.state == .building {
+                Button("Starting Tunnel…") {}
+                    .disabled(true)
+                Button("Cancel Starting Tunnel") {
+                    Task {
+                        await model.settings.perform { try await $0.stopShare(site: site.name) }
+                        await model.refresh()
                     }
                 }
             } else {
                 Button("Start Cloudflare Tunnel") {
                     Task {
                         await model.settings.perform { _ = try await $0.startShare(site: site.name, allow: [], debug: false) }
+                        await model.refresh()
                     }
                 }
+            }
+            Button("Manage Tunnel & QR Code…") {
+                model.pendingSite = site.name
+                model.showSettings(.sites)
+                openWindow.activating(WindowID.settings)
             }
             Divider()
             Button("Open in TablePlus / DB") {
@@ -616,6 +689,21 @@ private struct WorktreeRow: View {
         .disabled(worktree.url == nil)
         .onHover { isHovered = $0 }
         .help(worktree.url ?? worktree.path)
+        .contextMenu {
+            Button("Open in Browser") {
+                open()
+            }
+            Divider()
+            Button("Open in TablePlus / DB") {
+                let dbName = worktree.name.replacingOccurrences(of: "-", with: "_")
+                if let dbURL = URL(string: "mysql://root:@127.0.0.1:3306/\(dbName)") {
+                    NSWorkspace.shared.open(dbURL)
+                }
+            }
+            Button("Reveal in Finder") {
+                NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: worktree.path)])
+            }
+        }
     }
 }
 
