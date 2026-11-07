@@ -51,14 +51,17 @@ type DocRoot struct {
 }
 
 // RootFor decides the document root of a site: the one set for it on this machine, else root=
-// in the .flockrc of its own folder, else the first of RootDirs with an index.php, else the
-// project folder. Unlike versions, root= is not looked up in parent folders: a .flockrc in a
+// in the .devezrc / .flockrc of its own folder, else the first of RootDirs with an index.php, else the
+// project folder. Unlike versions, root= is not looked up in parent folders: a config in a
 // parked folder would otherwise move the root of every project in it.
 func RootFor(site *config.Site) DocRoot {
 	r := DocRoot{Source: Default}
-	rc := filepath.Join(site.Path, RC)
-	if pinned, _ := readKey(rc, Root); pinned != "" {
-		r.Pinned, r.File = pinned, rc
+	for _, name := range []string{RC, LegacyRC} {
+		rc := filepath.Join(site.Path, name)
+		if pinned, _ := readKey(rc, Root); pinned != "" {
+			r.Pinned, r.File = pinned, rc
+			break
+		}
 	}
 	switch {
 	case site.Root != "":
@@ -176,13 +179,16 @@ func RootFromPath(dir, path string) (string, error) {
 	return ValidRoot(dir, rel)
 }
 
-// PinRoot writes the document root into the .flockrc of the project in dir and returns the file.
+// PinRoot writes the document root into the .devezrc (or existing .flockrc) of the project in dir and returns the file.
 func PinRoot(dir, rel string) (string, error) {
 	clean, err := ValidRoot(dir, rel)
 	if err != nil {
 		return "", err
 	}
 	rc := filepath.Join(dir, RC)
+	if _, err := os.Stat(filepath.Join(dir, LegacyRC)); err == nil {
+		rc = filepath.Join(dir, LegacyRC)
+	}
 	return rc, setKey(rc, Root, clean)
 }
 

@@ -25,9 +25,8 @@ import (
 // tools are the commands Flock puts on PATH as shims.
 var tools = append([]string{"php", "composer", "node", "npm", "npx", "redis-cli", "valkey-cli"}, postgres.ClientTools...)
 
-// cliAliases are other names for the flock command, installed next to it. On Linux `flk` is also
-// the one that never hands a call to util-linux's flock (see PassThrough).
-var cliAliases = []string{"flk"}
+// cliAliases are other names for the devez command, installed next to it.
+var cliAliases = []string{"flock", "flk", "dez"}
 
 // ShimTool returns the tool a shim executable stands for ("php" for ...\bin\php.exe), or "".
 func ShimTool(argv0 string) string {

@@ -504,12 +504,13 @@ func TestSiteDocumentRootEndpoints(t *testing.T) {
 		}
 	}
 
-	// Pinning writes the root in use into .flockrc and lifts this machine's.
+	// Pinning writes the root in use into .devezrc and lifts this machine's.
 	if resp, body := call(t, "POST", srv.URL+"/v1/sites/zoo/pin", "", `{"tool":"root"}`); resp.StatusCode != http.StatusOK {
 		t.Fatalf("pin root: %d %s", resp.StatusCode, body)
 	}
-	if data, _ := os.ReadFile(filepath.Join(project, ".flockrc")); string(data) != "root=src/www\n" {
-		t.Fatalf(".flockrc: %q", data)
+	rcFile := filepath.Join(project, ".devezrc")
+	if data, _ := os.ReadFile(rcFile); string(data) != "root=src/www\n" {
+		t.Fatalf(".devezrc: %q", data)
 	}
 	if site, _ := b.config(t).FindSite("zoo"); site.Root != "" {
 		t.Fatalf("the machine's root must be lifted: %+v", site)
@@ -518,8 +519,8 @@ func TestSiteDocumentRootEndpoints(t *testing.T) {
 	if resp, body := call(t, "DELETE", srv.URL+"/v1/sites/zoo/pin/root", "", ""); resp.StatusCode != http.StatusOK {
 		t.Fatalf("unpin root: %d %s", resp.StatusCode, body)
 	}
-	if _, err := os.Stat(filepath.Join(project, ".flockrc")); !os.IsNotExist(err) {
-		t.Fatalf("an empty .flockrc must be removed: %v", err)
+	if _, err := os.Stat(rcFile); !os.IsNotExist(err) {
+		t.Fatalf("an empty .devezrc must be removed: %v", err)
 	}
 	if resp, _ := call(t, "DELETE", srv.URL+"/v1/sites/zoo/pin/root", "", ""); resp.StatusCode != http.StatusBadRequest {
 		t.Fatalf("unpinning nothing must be rejected, got %d", resp.StatusCode)

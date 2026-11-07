@@ -1,4 +1,4 @@
-// Package cli implements the `flock` command.
+// Package cli implements the `devez` command.
 package cli
 
 import (
@@ -10,11 +10,12 @@ import (
 // Version is set at build time: go build -ldflags "-X flock/internal/cli.Version=1.2.3".
 var Version = "dev"
 
-// NewRootCommand builds the `flock` command tree.
+// NewRootCommand builds the `devez` command tree.
 func NewRootCommand() *cobra.Command {
 	root := &cobra.Command{
-		Use:           "flock",
-		Short:         "Flock — a native local Laravel development environment",
+		Use:           "devez",
+		Aliases:       []string{"flock"},
+		Short:         "DevEz — a native local Laravel development environment",
 		SilenceUsage:  true,
 		SilenceErrors: false,
 	}
@@ -38,9 +39,9 @@ func NewRootCommand() *cobra.Command {
 func newVersionCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "version",
-		Short: "Print the Flock version",
+		Short: "Print the DevEz version",
 		Run: func(cmd *cobra.Command, _ []string) {
-			cmd.Println("flock " + Version)
+			cmd.Println("devez " + Version)
 		},
 	}
 }

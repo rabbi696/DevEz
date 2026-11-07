@@ -4,11 +4,12 @@ LDFLAGS := -s -w -X flock/internal/cli.Version=$(VERSION)
 .PHONY: build build-all test lint notices app dmg windows windows-test
 
 build:
-	go build -ldflags "$(LDFLAGS)" -o bin/flock ./cmd/flock
+	go build -ldflags "$(LDFLAGS)" -o bin/devez ./cmd/devez
+	ln -sf devez bin/flock
 
 build-all:
-	GOOS=darwin  GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o dist/flock-darwin-arm64 ./cmd/flock
-	GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o dist/flock-windows-amd64.exe ./cmd/flock
+	GOOS=darwin  GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o dist/devez-darwin-arm64 ./cmd/devez
+	GOOS=windows GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o dist/devez-windows-amd64.exe ./cmd/devez
 
 test:
 	go test -race ./...

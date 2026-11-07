@@ -21,6 +21,9 @@ func writeShims(root, bin string) error {
 		}
 	}
 	for _, alias := range cliAliases {
+		if alias == filepath.Base(bin) {
+			continue
+		}
 		link := filepath.Join(dir, alias)
 		if err := os.Remove(link); err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err

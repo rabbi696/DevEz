@@ -55,9 +55,10 @@ install_name_tool -add_rpath @executable_path/../Frameworks "$APP/Contents/MacOS
 cp Resources/AppIcon.icns Resources/MenuBar*.png Resources/LogoMark*.png "$APP/Contents/Resources/"
 cp ../LICENSE ../NOTICE ../THIRD_PARTY_NOTICES "$APP/Contents/Resources/"
 
-# The CLI, built like `make build`; `flock install` copies it to the data dir.
+# The CLI, built like `make build`; `devez install` copies it to the data dir.
 (cd .. && CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w -X flock/internal/cli.Version=$VERSION" \
-	-o "build/macos/Flock.app/Contents/MacOS/flock" ./cmd/flock)
+	-o "build/macos/Flock.app/Contents/MacOS/devez" ./cmd/devez)
+ln -sf devez "$APP/Contents/MacOS/flock"
 
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -105,7 +106,7 @@ SPARKLE="$APP/Contents/Frameworks/Sparkle.framework"
 "${SIGN[@]}" "$SPARKLE/Versions/B/Autoupdate"
 "${SIGN[@]}" "$SPARKLE/Versions/B/Updater.app"
 "${SIGN[@]}" "$SPARKLE"
-"${SIGN[@]}" "$APP/Contents/MacOS/flock"
+"${SIGN[@]}" "$APP/Contents/MacOS/devez"
 "${SIGN[@]}" "$APP"
 codesign --verify --strict --deep "$APP"
 echo "built $(cd "$OUT" && pwd)/Flock.app"

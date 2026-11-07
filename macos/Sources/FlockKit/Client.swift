@@ -1,17 +1,32 @@
 import Foundation
 
-/// Where Flock keeps its files (FLOCK_HOME overrides it, like the CLI).
+/// Where DevEz keeps its files (DEVEZ_HOME / FLOCK_HOME overrides it, like the CLI).
 public enum FlockPaths {
     public static var root: URL {
+        if let home = ProcessInfo.processInfo.environment["DEVEZ_HOME"], !home.isEmpty {
+            return URL(fileURLWithPath: home, isDirectory: true)
+        }
         if let home = ProcessInfo.processInfo.environment["FLOCK_HOME"], !home.isEmpty {
             return URL(fileURLWithPath: home, isDirectory: true)
         }
-        return FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library/Application Support/Flock", isDirectory: true)
+        let appSupport = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Application Support", isDirectory: true)
+        let devezDir = appSupport.appendingPathComponent("DevEz", isDirectory: true)
+        let flockDir = appSupport.appendingPathComponent("Flock", isDirectory: true)
+        if FileManager.default.fileExists(atPath: devezDir.path) || !FileManager.default.fileExists(atPath: flockDir.path) {
+            return devezDir
+        }
+        return flockDir
     }
 
     public static var apiJSON: URL { root.appendingPathComponent("api.json") }
-    public static var flockBinary: URL { root.appendingPathComponent("bin/flock") }
+    public static var flockBinary: URL {
+        let devezBin = root.appendingPathComponent("bin/devez")
+        if FileManager.default.fileExists(atPath: devezBin.path) {
+            return devezBin
+        }
+        return root.appendingPathComponent("bin/flock")
+    }
 }
 
 /// Contents of api.json, written by the daemon.

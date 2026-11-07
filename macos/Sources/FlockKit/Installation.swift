@@ -21,12 +21,23 @@ public struct Installation: Sendable {
 
     /// The installation of the running app.
     public static var current: Installation {
-        let bundled = Bundle.main.executableURL?.deletingLastPathComponent().appendingPathComponent("flock")
-        return Installation(bundledFlock: bundled.flatMap { FileManager.default.isExecutableFile(atPath: $0.path) ? $0 : nil })
+        let binDir = Bundle.main.executableURL?.deletingLastPathComponent()
+        let bundledDevez = binDir?.appendingPathComponent("devez")
+        if let bundledDevez, FileManager.default.isExecutableFile(atPath: bundledDevez.path) {
+            return Installation(bundledFlock: bundledDevez)
+        }
+        let bundledFlock = binDir?.appendingPathComponent("flock")
+        return Installation(bundledFlock: bundledFlock.flatMap { FileManager.default.isExecutableFile(atPath: $0.path) ? $0 : nil })
     }
 
     public static var defaultLaunchAgent: URL {
-        FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/LaunchAgents/dev.flock.daemon.plist")
+        let agents = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Library/LaunchAgents")
+        let devezPlist = agents.appendingPathComponent("dev.devez.daemon.plist")
+        let flockPlist = agents.appendingPathComponent("dev.flock.daemon.plist")
+        if FileManager.default.fileExists(atPath: devezPlist.path) || !FileManager.default.fileExists(atPath: flockPlist.path) {
+            return devezPlist
+        }
+        return flockPlist
     }
 
     /// The CLI is installed and the daemon is registered to start at login.

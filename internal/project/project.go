@@ -21,8 +21,11 @@ import (
 	"flock/internal/php"
 )
 
-// RC is Flock's own project file: "php=8.4", "node=22" and "root=src/www" lines, # comments.
-const RC = ".flockrc"
+// RC is DevEz's own project file: "php=8.4", "node=22" and "root=src/www" lines, # comments.
+const (
+	RC       = ".devezrc"
+	LegacyRC = ".flockrc"
+)
 
 // Tools a version can be isolated for or pinned.
 const (
@@ -149,13 +152,16 @@ func PinSite(cfg *config.Config, site *config.Site, tool, version string) (file 
 }
 
 // Pin writes version for tool into the project in dir and returns the file it wrote. PHP goes
-// into .flockrc; Node into the file the project already names its Node version in (.flockrc's
+// into .devezrc (or existing .flockrc); Node into the file the project already names its Node version in (.devezrc's
 // node=, .node-version or .nvmrc), else a new .nvmrc, the file other Node tools read too.
 func Pin(dir, tool, version string) (string, error) {
 	if err := ValidVersion(tool, version); err != nil {
 		return "", err
 	}
 	rc := filepath.Join(dir, RC)
+	if _, err := os.Stat(filepath.Join(dir, LegacyRC)); err == nil {
+		rc = filepath.Join(dir, LegacyRC)
+	}
 	if tool == PHP {
 		return rc, setKey(rc, PHP, version)
 	}
@@ -172,17 +178,19 @@ func Pin(dir, tool, version string) (string, error) {
 	return file, os.WriteFile(file, []byte(version+"\n"), 0o644)
 }
 
-// Unpin removes tool's version from the project in dir: the key from .flockrc (and the file when
+// Unpin removes tool's version from the project in dir: the key from .devezrc / .flockrc (and the file when
 // nothing else is left in it), and for Node the .nvmrc / .node-version files. It returns the files
 // it changed; none means nothing was pinned in dir itself.
 func Unpin(dir, tool string) ([]string, error) {
 	var changed []string
-	rc := filepath.Join(dir, RC)
-	if v, _ := readKey(rc, tool); v != "" {
-		if err := deleteKey(rc, tool); err != nil {
-			return changed, err
+	for _, name := range []string{RC, LegacyRC} {
+		rc := filepath.Join(dir, name)
+		if v, _ := readKey(rc, tool); v != "" {
+			if err := deleteKey(rc, tool); err != nil {
+				return changed, err
+			}
+			changed = append(changed, rc)
 		}
-		changed = append(changed, rc)
 	}
 	if tool == Node {
 		for _, name := range node.SpecFiles {
@@ -203,7 +211,7 @@ func Files(dir string) []string {
 	var files []string
 	dir = filepath.Clean(dir)
 	for {
-		files = append(files, filepath.Join(dir, RC))
+		files = append(files, filepath.Join(dir, RC), filepath.Join(dir, LegacyRC))
 		for _, name := range node.SpecFiles {
 			files = append(files, filepath.Join(dir, name))
 		}
@@ -215,13 +223,15 @@ func Files(dir string) []string {
 	}
 }
 
-// findKey walks up from dir to the nearest .flockrc that sets key.
+// findKey walks up from dir to the nearest .devezrc or .flockrc that sets key.
 func findKey(dir, key string) (value, file string) {
 	dir = filepath.Clean(dir)
 	for {
-		path := filepath.Join(dir, RC)
-		if v, err := readKey(path, key); err == nil && v != "" {
-			return v, path
+		for _, name := range []string{RC, LegacyRC} {
+			path := filepath.Join(dir, name)
+			if v, err := readKey(path, key); err == nil && v != "" {
+				return v, path
+			}
 		}
 		parent := filepath.Dir(dir)
 		if parent == dir {
