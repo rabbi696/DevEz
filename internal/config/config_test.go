@@ -10,7 +10,7 @@ func TestLoadReturnsDefaultsWhenMissingAndRoundTrips(t *testing.T) {
 	root := t.TempDir()
 
 	cfg, err := Load(root)
-	if err != nil || cfg.TLD != "test" || cfg.Ports.HTTPS != 443 {
+	if err != nil || cfg.TLD != "test" || cfg.Ports.HTTPS != 8443 || cfg.Ports.HTTP != 8080 {
 		t.Fatalf("unexpected defaults: %+v, %v", cfg, err)
 	}
 

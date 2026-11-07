@@ -63,8 +63,8 @@ struct GeneralPane: View {
                     } header: {
                         Text("Network")
                     } footer: {
-                        // Sites are served on 80 and 443; other ports are only set by editing config.json.
-                        if config.ports.http != 80 || config.ports.https != 443 {
+                        // Sites are served on 8080 and 8443; other ports are only set by editing config.json.
+                        if config.ports.http != 8080 || config.ports.https != 8443 {
                             Text("Sites use ports \(String(config.ports.http)) (HTTP) and \(String(config.ports.https)) (HTTPS), set in config.json, so their addresses include the port.")
                                 .font(.caption).foregroundStyle(.secondary)
                         }

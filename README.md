@@ -24,7 +24,7 @@
 
 ## ✨ Features
 
-- **`.test` domains with automatic HTTPS:** Park a projects directory or link an individual project to get immediate `<name>.test` local domains with trusted certificates (no browser security warnings).
+- **`.test` domains with automatic HTTPS:** Park a projects directory or link an individual project to get immediate `<name>.test` local domains with trusted SSL certificates. DevEz serves HTTPS on port **8443** and HTTP on port **8080** by default, running completely rootless and conflict-free with other apps using ports 80/443.
 - **Multiple PHP versions side by side:** Run PHP 8.1 through 8.5 concurrently. Each project can pin its preferred version via `.devezrc` (or `.flockrc`).
 - **Node.js version management:** Automatically respects `.nvmrc` or project configurations.
 - **One-click background services:** Native databases and cache services including PostgreSQL, MySQL, MariaDB, MongoDB, Redis, Valkey, Meilisearch, and Typesense.

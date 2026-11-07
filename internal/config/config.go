@@ -213,7 +213,7 @@ func Default() *Config {
 		TLD:               "test",
 		Xdebug:            true,
 		XdebugBreakpoints: true,
-		Ports:             Ports{HTTP: 80, HTTPS: 443, DNS: 53535, SMTP: 2525, Postgres: 5432, Dumps: 9912, Agent: 9913, API: 53531},
+		Ports:             Ports{HTTP: 8080, HTTPS: 8443, DNS: 53535, SMTP: 2525, Postgres: 5432, Dumps: 9912, Agent: 9913, API: 53531},
 	}
 }
 
