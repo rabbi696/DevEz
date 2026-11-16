@@ -159,6 +159,12 @@ make build
 
 ---
 
+## 💬 Community & Upstream Support
+
+Bug reports and feature requests for upstream can be found in [Upstream Issues](https://github.com/flock-php/flock/issues) or on [Discord](https://discord.flockphp.com). If upstream Flock saves you time, consider [sponsoring Flock](https://github.com/sponsors/flock-php) or starring on GitHub.
+
+---
+
 ## 📄 License & Acknowledgments
 
 DevEz is free, open-source software licensed under the [GNU Affero General Public License v3.0](LICENSE).  
