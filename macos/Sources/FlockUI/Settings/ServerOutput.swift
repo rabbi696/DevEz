@@ -339,13 +339,23 @@ struct AddProxySheet: View {
     let add: (String, String, String?, String?, String?) -> Void
     let cancel: () -> Void
     let tld: String
+    var initialUpstream: String = ""
 
-    private let nameState = State<String>(initialValue: "")
-    private let upstreamState = State<String>(initialValue: "")
+    private let nameState: State<String>
+    private let upstreamState: State<String>
     private let commandsShownState = State<Bool>(initialValue: false)
     private let commandState = State<String>(initialValue: "")
     private let stopState = State<String>(initialValue: "")
     private let dirState = State<String>(initialValue: ProxyCommandsFields.home)
+
+    init(add: @escaping (String, String, String?, String?, String?) -> Void, cancel: @escaping () -> Void, tld: String, initialUpstream: String = "") {
+        self.add = add
+        self.cancel = cancel
+        self.tld = tld
+        self.initialUpstream = initialUpstream
+        self.nameState = State<String>(initialValue: "")
+        self.upstreamState = State<String>(initialValue: initialUpstream)
+    }
 
     var body: some View {
         let name = nameState.wrappedValue.trimmingCharacters(in: .whitespaces)

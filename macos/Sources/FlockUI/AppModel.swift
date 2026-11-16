@@ -23,6 +23,18 @@ final class AppModel {
     /// The app is replacing the installed CLI with its bundled one.
     private(set) var isUpdating = false
 
+    /// Running dev server ports detected on localhost (e.g. 3000, 5173, 8080).
+    private(set) var detectedPorts: [UInt16] = []
+    /// Relay / Cloudflare round-trip latency in seconds.
+    private(set) var relayLatency: TimeInterval?
+    private(set) var relayReachable: Bool?
+    private(set) var isStoppingShares = false
+
+    /// Count of sites currently shared over a public Cloudflare tunnel.
+    var liveShareCount: Int {
+        status?.sites.filter { $0.shared }.count ?? 0
+    }
+
     /// The pane the Settings window shows; the panel opens Settings at a pane.
     var settingsPane: SettingsPane = .general
     /// The service selected in Settings → Services.
@@ -122,11 +134,68 @@ final class AppModel {
 
     private func startPolling() {
         pollTask = Task { [weak self] in
+            var cycle = 0
             while !Task.isCancelled {
                 await self?.refresh()
+                cycle += 1
+                if cycle % 5 == 1 {
+                    await self?.probeDetectedPorts()
+                    await self?.refreshRelayLatency()
+                }
                 try? await Task.sleep(for: .seconds(2))
             }
         }
+    }
+
+    /// Stops all currently live site shares / tunnels.
+    func stopAllShares() async {
+        guard let sites = status?.sites else { return }
+        let shared = sites.filter { $0.shared }
+        guard !shared.isEmpty else { return }
+        isStoppingShares = true
+        defer { isStoppingShares = false }
+        for site in shared {
+            try? await client.stopShare(site: site.name)
+        }
+        await refresh()
+    }
+
+    /// Scans common local development ports to detect running local servers.
+    func probeDetectedPorts() async {
+        let activeProxies = Set((status?.proxies ?? []).compactMap { proxy -> UInt16? in
+            let clean = proxy.upstream.replacingOccurrences(of: "http://", with: "").replacingOccurrences(of: "https://", with: "")
+            let parts = clean.split(separator: ":")
+            if let last = parts.last, let port = UInt16(last) { return port }
+            return nil
+        })
+        let httpPort = UInt16(settings.config?.ports.http ?? 8080)
+        let httpsPort = UInt16(settings.config?.ports.https ?? 8443)
+        let ignored: Set<UInt16> = Set([httpPort, httpsPort, 80, 443]).union(activeProxies)
+
+        let candidatePorts = PortProbe.commonPorts.filter { !ignored.contains($0) }
+        let listening = await withTaskGroup(of: (UInt16, Bool).self) { group in
+            for port in candidatePorts {
+                group.addTask {
+                    let ok = await PortProbe.isListening(port, timeout: 0.4)
+                    return (port, ok)
+                }
+            }
+            var results: [UInt16] = []
+            for await (port, isUp) in group {
+                if isUp { results.append(port) }
+            }
+            return results.sorted()
+        }
+        if detectedPorts != listening {
+            detectedPorts = listening
+        }
+    }
+
+    /// Checks round-trip latency to Cloudflare relay endpoint.
+    func refreshRelayLatency() async {
+        let latency = await PortProbe.measure(host: "1.1.1.1", port: 443, timeout: 1.0)
+        relayLatency = latency
+        relayReachable = latency != nil
     }
 
     func refresh() async {

@@ -44,6 +44,8 @@ struct SitesPane: View {
 
     /// The Add Proxy sheet is open.
     private let addingProxyState = State<Bool>(initialValue: false)
+    /// An optional initial port to pre-fill in the Add Proxy sheet.
+    private let proxyInitialPortState = State<String>(initialValue: "")
     /// The proxy whose upstream is being changed, and the upstream typed so far.
     private let editingUpstreamState = State<String?>(initialValue: nil)
     private var editingUpstream: String? {
@@ -68,25 +70,77 @@ struct SitesPane: View {
         let nodeMajors = store.config?.nodeMajors ?? []
 
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .bottom) {
-                PaneHeader(title: "Sites", subtitle: "Sites you added one by one, plus every folder inside your project folders.")
-                Button("Add Proxy…") { addingProxyState.wrappedValue = true }
-                    .help("Serve a server of its own, e.g. a dashboard, an object store, a Docker container or a Go or Python app, at a .\(model.status?.dns.tld ?? "test") domain")
-                    .padding(.bottom, 6)
-                Button("Add Site…") {
-                    for url in SettingsStore.chooseDirectories(prompt: "Add", multiple: false) {
-                        Task { await store.perform { _ = try await $0.linkSite(path: url.path) } }
+            // Modern header matching Localfly design
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Sites")
+                        .font(.system(size: 28, weight: .bold))
+                    HStack(spacing: 8) {
+                        Text(siteSummary(sitesCount: sites.count, proxiesCount: proxies.count))
+                            .foregroundStyle(.secondary)
+                        if model.liveShareCount > 0 {
+                            Pill(text: "\(model.liveShareCount) live", dot: Color.live, tint: Color.live)
+                        }
+                        Text("via").foregroundStyle(.secondary)
+                        HStack(spacing: 5) {
+                            SignalBars(latency: model.relayLatency, reachable: model.relayReachable)
+                            Text("Cloudflare")
+                            if let latency = model.relayLatency {
+                                Text("\(max(1, Int(latency * 1000))) ms")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .font(.system(size: 11.5, weight: .semibold))
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.primary.opacity(0.06)))
                     }
+                    .font(.system(size: 13))
                 }
-                .padding(.trailing, 20)
-                .padding(.bottom, 6)
+                Spacer()
+                HStack(spacing: 8) {
+                    Button("Add Proxy…") {
+                        proxyInitialPortState.wrappedValue = ""
+                        addingProxyState.wrappedValue = true
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
+                    .help("Serve a server of its own (e.g. Node, Go, Docker) at a .\(model.status?.dns.tld ?? "test") domain")
+
+                    Button("Add Site…") {
+                        for url in SettingsStore.chooseDirectories(prompt: "Add", multiple: false) {
+                            Task { await store.perform { _ = try await $0.linkSite(path: url.path) } }
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Color.flockMark)
+                    .controlSize(.regular)
+                }
             }
+            .padding(.horizontal, 24)
+            .padding(.top, 16)
+            .padding(.bottom, 10)
 
             if sites.isEmpty && proxies.isEmpty {
-                ContentUnavailableView("No sites", systemImage: "globe",
-                                       description: Text("Add a single site here, or add a project folder in General."))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ScrollView {
+                    emptySitesView { port in
+                        if let port {
+                            proxyInitialPortState.wrappedValue = String(port)
+                            addingProxyState.wrappedValue = true
+                        } else {
+                            for url in SettingsStore.chooseDirectories(prompt: "Add", multiple: false) {
+                                Task { await store.perform { _ = try await $0.linkSite(path: url.path) } }
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                }
             } else {
+                if !model.detectedPorts.isEmpty {
+                    detectedPortsBar
+                }
+
                 // The sites in a list, the selected one's details beside it, as in Services.
                 // Site and proxy names never clash (the daemon refuses it), so one selection covers both.
                 let selectedProxy = proxies.first { $0.id == selectionState.wrappedValue } ?? (sites.isEmpty ? proxies.first : nil)
@@ -144,10 +198,10 @@ struct SitesPane: View {
                         model.pendingSite = nil
                     }
                 }
-                .overlay(RoundedRectangle(cornerRadius: 8).strokeBorder(.separator))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
+                .surface(radius: 12)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
             }
         }
         .sheet(item: extensionsState.projectedValue) { site in
@@ -195,12 +249,14 @@ struct SitesPane: View {
         .sheet(isPresented: addingProxyState.projectedValue) {
             AddProxySheet(add: { name, upstream, command, dir, stop in
                 addingProxyState.wrappedValue = false
+                proxyInitialPortState.wrappedValue = ""
                 selectionState.wrappedValue = name
                 // With commands, one request makes the proxy and its commands.
                 Task { await store.perform { _ = try await $0.proxy(name: name, upstream: upstream, command: command, dir: dir, stopCommand: stop) } }
             }, cancel: {
                 addingProxyState.wrappedValue = false
-            }, tld: model.status?.dns.tld ?? "test")
+                proxyInitialPortState.wrappedValue = ""
+            }, tld: model.status?.dns.tld ?? "test", initialUpstream: proxyInitialPortState.wrappedValue)
         }
         .alert("Change the upstream of \(editingUpstream ?? "")", isPresented: Binding(get: { editingUpstream != nil }, set: { if !$0 { editingUpstream = nil } })) {
             TextField("Port, host:port or URL", text: upstreamDraftState.projectedValue)
@@ -229,6 +285,99 @@ struct SitesPane: View {
         } message: { request in
             Text(request.message)
         }
+    }
+
+    private func siteSummary(sitesCount: Int, proxiesCount: Int) -> String {
+        let total = sitesCount + proxiesCount
+        switch total {
+        case 0: return "Nothing saved yet."
+        case 1: return "1 site configured:"
+        default: return "\(total) sites configured:"
+        }
+    }
+
+    private func emptySitesView(onAdd: @escaping (UInt16?) -> Void) -> some View {
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .strokeBorder(style: StrokeStyle(lineWidth: 1.2, dash: [3, 5]))
+                    .foregroundStyle(Color.secondary.opacity(0.35))
+                    .frame(width: 112, height: 112)
+                Circle()
+                    .fill(Color.flockMark.opacity(0.08))
+                    .frame(width: 76, height: 76)
+                DevEzBrandMark(size: 44)
+            }
+            VStack(spacing: 6) {
+                Text("Put a local app on the internet")
+                    .font(.system(size: 17, weight: .semibold))
+                Text("Serve your local projects with fast local HTTPS, or share them to the world.\nWorks with Laravel, WordPress, Node.js, and proxy services.")
+                    .font(.system(size: 13))
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+            }
+            Button("Add Your First Site") { onAdd(nil) }
+                .buttonStyle(.borderedProminent)
+                .tint(Color.flockMark)
+                .controlSize(.large)
+                .padding(.top, 4)
+
+            if !model.detectedPorts.isEmpty {
+                VStack(spacing: 8) {
+                    Text("Running on this Mac right now")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    HStack(spacing: 6) {
+                        ForEach(model.detectedPorts, id: \.self) { port in
+                            Button {
+                                onAdd(port)
+                            } label: {
+                                Label(":\(String(port))", systemImage: "plus")
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                            .help("Serve localhost:\(String(port)) with DevEz")
+                        }
+                    }
+                }
+                .padding(.top, 6)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 48)
+        .surface(radius: 18)
+    }
+
+    private var detectedPortsBar: some View {
+        HStack(spacing: 8) {
+            Text("RUNNING ON THIS MAC:")
+                .font(.system(size: 10.5, weight: .semibold))
+                .tracking(0.5)
+                .foregroundStyle(.secondary)
+            ForEach(model.detectedPorts, id: \.self) { port in
+                Button {
+                    proxyInitialPortState.wrappedValue = String(port)
+                    addingProxyState.wrappedValue = true
+                } label: {
+                    HStack(spacing: 5) {
+                        StatusDot(color: Color.live, size: 5)
+                        Text(verbatim: ":\(String(port))")
+                            .font(.system(size: 11.5, design: .monospaced))
+                        Image(systemName: "plus")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 5)
+                    .surface(radius: 8)
+                }
+                .buttonStyle(PressableStyle(hoverFill: false))
+                .help("Add localhost:\(String(port)) as proxy")
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 8)
     }
 
     /// What a pending flock://secure link asks for, once the sites are loaded.

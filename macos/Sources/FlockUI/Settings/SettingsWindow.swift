@@ -3,13 +3,12 @@ import SwiftUI
 
 /// The panes of the Settings window, in sidebar order.
 enum SettingsPane: String, CaseIterable, Identifiable {
-    case general, sites, php, node, services, mail, dumps, debugger, ai, about
+    case sites, php, node, services, mail, dumps, debugger, ai, general, about
 
     var id: String { rawValue }
 
     var title: String {
         switch self {
-        case .general: "General"
         case .sites: "Sites"
         case .php: "PHP"
         case .node: "Node"
@@ -18,13 +17,13 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .dumps: "Dumps"
         case .debugger: "Debugger"
         case .ai: "AI"
+        case .general: "General"
         case .about: "About"
         }
     }
 
     var symbol: String {
         switch self {
-        case .general: "gearshape.fill"
         case .sites: "globe"
         case .php: "chevron.left.forwardslash.chevron.right"
         case .node: "hexagon.fill"
@@ -33,14 +32,14 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .dumps: "ladybug.fill"
         case .debugger: "ant.fill"
         case .ai: "sparkles"
+        case .general: "gearshape.fill"
         case .about: "info"
         }
     }
 
     var color: Color {
         switch self {
-        case .general: .gray
-        case .sites: .blue
+        case .sites: Color.flockMark
         case .php: .indigo
         case .node: .green
         case .services: .orange
@@ -48,14 +47,14 @@ enum SettingsPane: String, CaseIterable, Identifiable {
         case .dumps: .pink
         case .debugger: .red
         case .ai: .purple
+        case .general: .gray
         case .about: .secondary
         }
     }
 }
 
 /// Settings: a sidebar of panes and the selected pane on the right.
-/// A plain HStack instead of NavigationSplitView, which lets the toolbar background
-/// bleed under its floating sidebar on current macOS.
+/// Modern macOS styling with brand header, categorized groups, and bottom privacy card.
 struct SettingsWindow: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openWindow) private var openWindow
@@ -68,20 +67,43 @@ struct SettingsWindow: View {
         let store = model.settings
 
         HStack(spacing: 0) {
-            List(selection: Binding<SettingsPane?>(get: { pane }, set: { if let new = $0 { pane = new } })) {
-                ForEach(SettingsPane.allCases) { item in
-                    Label {
-                        Text(item.title)
-                    } icon: {
-                        SettingsIcon(symbol: item.symbol, color: item.color)
+            VStack(spacing: 0) {
+                // Top brand header
+                SidebarBrandHeader()
+                    .padding(.top, 40) // clear traffic lights
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 10)
+
+                // Grouped navigation sidebar
+                List(selection: Binding<SettingsPane?>(get: { pane }, set: { if let new = $0 { pane = new } })) {
+                    Section {
+                        sidebarRow(.sites, badge: (model.status?.sites.count ?? 0) + (model.status?.proxies.count ?? 0))
                     }
-                    .tag(item)
-                    .padding(.vertical, 2)
+                    Section("Environment") {
+                        sidebarRow(.php)
+                        sidebarRow(.node)
+                        sidebarRow(.services)
+                        sidebarRow(.mail)
+                        sidebarRow(.dumps)
+                        sidebarRow(.debugger)
+                        sidebarRow(.ai)
+                    }
+                    Section("Settings") {
+                        sidebarRow(.general)
+                        sidebarRow(.about)
+                    }
                 }
+                .listStyle(.sidebar)
+                .scrollContentBackground(.hidden)
+
+                Spacer(minLength: 0)
+
+                // Bottom privacy & tunnel status card
+                SidebarStatusCard()
+                    .padding(10)
             }
-            .listStyle(.sidebar)
-            .frame(width: 200)
-            .safeAreaPadding(.top, 38) // clear the traffic lights
+            .frame(width: 220)
+            .background(Color(nsColor: .windowBackgroundColor))
 
             Divider()
 
@@ -97,13 +119,25 @@ struct SettingsWindow: View {
             }
             .background(Color(nsColor: .windowBackgroundColor))
         }
+        .tint(Color.flockMark)
         .ignoresSafeArea(.container, edges: .top)
-        .frame(minWidth: 810, minHeight: 480)
+        .frame(minWidth: 850, minHeight: 520)
         .task {
             store.isVisible = true
             await store.refresh()
         }
         .onDisappear { store.isVisible = false }
+    }
+
+    private func sidebarRow(_ item: SettingsPane, badge: Int = 0) -> some View {
+        Label {
+            Text(item.title)
+        } icon: {
+            SettingsIcon(symbol: item.symbol, color: item.color)
+        }
+        .badge(badge > 0 ? "\(badge)" : "")
+        .tag(item)
+        .padding(.vertical, 2)
     }
 
     @ViewBuilder
