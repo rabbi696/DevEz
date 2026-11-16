@@ -168,6 +168,7 @@ struct NodeDevServerSection: View {
 /// a proxy's server. PHP sites have none.
 extension Status.Site {
     /// The dev server's dot and its state as help; nil for a PHP site.
+    @MainActor
     var stateDot: (color: Color, help: String)? {
         guard isNode, let server = nodeServer else { return nil }
         let state = NodeDevServerSection.state(server)
@@ -180,6 +181,7 @@ extension Status.Site {
 
 extension Status.Proxy {
     /// Its command's state when it has one (failed, on its way), else whether something answers.
+    @MainActor
     var stateDot: (color: Color, help: String) {
         if let command {
             switch command.state {
